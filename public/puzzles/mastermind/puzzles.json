@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "game_type": "mastermind",
+  "puzzles": [
+    {"id":"mastermind-easy-001","title":"入門コード 1","difficulty":"easy","problem":{"code_length":4,"symbol_count":6,"allow_duplicates":false,"max_attempts":10},"answer":{"secret":[1,2,3,4]},"metadata":{"source_type":"curated"}},
+    {"id":"mastermind-easy-002","title":"入門コード 2","difficulty":"easy","problem":{"code_length":4,"symbol_count":6,"allow_duplicates":false,"max_attempts":10},"answer":{"secret":[6,4,2,1]},"metadata":{"source_type":"curated"}},
+    {"id":"mastermind-easy-003","title":"入門コード 3","difficulty":"easy","problem":{"code_length":4,"symbol_count":6,"allow_duplicates":false,"max_attempts":10},"answer":{"secret":[2,5,1,6]},"metadata":{"source_type":"curated"}},
+    {"id":"mastermind-medium-001","title":"重複コード 1","difficulty":"medium","problem":{"code_length":4,"symbol_count":6,"allow_duplicates":true,"max_attempts":10},"answer":{"secret":[1,1,2,3]},"metadata":{"source_type":"curated"}},
+    {"id":"mastermind-medium-002","title":"重複コード 2","difficulty":"medium","problem":{"code_length":4,"symbol_count":6,"allow_duplicates":true,"max_attempts":10},"answer":{"secret":[6,2,6,4]},"metadata":{"source_type":"curated"}},
+    {"id":"mastermind-medium-003","title":"重複コード 3","difficulty":"medium","problem":{"code_length":4,"symbol_count":6,"allow_duplicates":true,"max_attempts":10},"answer":{"secret":[3,5,3,1]},"metadata":{"source_type":"curated"}},
+    {"id":"mastermind-hard-001","title":"長いコード 1","difficulty":"hard","problem":{"code_length":5,"symbol_count":8,"allow_duplicates":true,"max_attempts":12},"answer":{"secret":[1,8,1,4,6]},"metadata":{"source_type":"curated"}},
+    {"id":"mastermind-hard-002","title":"長いコード 2","difficulty":"hard","problem":{"code_length":5,"symbol_count":8,"allow_duplicates":true,"max_attempts":12},"answer":{"secret":[7,2,5,2,8]},"metadata":{"source_type":"curated"}},
+    {"id":"mastermind-hard-003","title":"長いコード 3","difficulty":"hard","problem":{"code_length":5,"symbol_count":8,"allow_duplicates":true,"max_attempts":12},"answer":{"secret":[4,4,6,1,3]},"metadata":{"source_type":"curated"}}
+  ]
+}
