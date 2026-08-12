@@ -1,0 +1,5 @@
+import type { LightsOutPuzzle,Position } from '../domain/lightsOut'
+import { applyPress } from '../domain/lightsOut'
+const ranges={light:[3,5],standard:[6,10],challenge:[11,15]} as const
+function mulberry32(seed:number){return()=>{let t=seed+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+export function generateLightsOut(seed:number,profile:keyof typeof ranges):LightsOutPuzzle{const random=mulberry32(seed),[min,max]=ranges[profile],count=min+Math.floor(random()*(max-min+1)),pool=Array.from({length:25},(_,i)=>i),moves:Position[]=[];for(let i=0;i<count;i++){const pick=i+Math.floor(random()*(25-i));[pool[i],pool[pick]]=[pool[pick],pool[i]];moves.push({row:Math.floor(pool[i]/5),column:pool[i]%5})}const cells=Array(25).fill(false) as boolean[];moves.forEach(move=>applyPress(cells,move));return{id:`lights-out-generated-${seed.toString(16)}`,title:'自動生成問題',difficulty:'generated',width:5,height:5,initialState:cells,oneSolutionMoves:moves,metadata:{source:'generated',seed,profile,known_solution_length:moves.length,difficulty_is_estimate:true}}}

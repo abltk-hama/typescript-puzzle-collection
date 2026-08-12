@@ -1,0 +1,10 @@
+export interface Position { row: number; column: number }
+export interface LightsOutPuzzle { id: string; title: string; difficulty: 'easy'|'medium'|'hard'|'generated'; width: 5; height: 5; initialState: boolean[]; oneSolutionMoves: Position[]; metadata: Record<string, unknown> }
+export interface LightsOutState { cells: boolean[]; history: Position[]; hint: Position|null; hintCount: number }
+export function applyPress(cells: boolean[], position: Position) { for (const [dr,dc] of [[0,0],[-1,0],[1,0],[0,-1],[0,1]]) { const row=position.row+dr,column=position.column+dc;if(row>=0&&row<5&&column>=0&&column<5){const i=row*5+column;cells[i]=!cells[i]}} }
+export function initialGame(puzzle: LightsOutPuzzle): LightsOutState { return { cells:[...puzzle.initialState],history:[],hint:null,hintCount:0 } }
+export function press(state: LightsOutState, position: Position): LightsOutState { const cells=[...state.cells];applyPress(cells,position);return{...state,cells,history:[...state.history,position],hint:null} }
+export function undo(state: LightsOutState): LightsOutState { if(!state.history.length)return state;const history=state.history.slice(0,-1),cells=[...state.cells];applyPress(cells,state.history.at(-1)!);return{...state,cells,history,hint:null} }
+export const isComplete=(state:LightsOutState)=>!state.cells.some(Boolean)
+export function nextHint(puzzle: LightsOutPuzzle,state:LightsOutState):LightsOutState{if(state.hint)return state;const parity=new Set(state.history.map(p=>`${p.row},${p.column}`));for(const move of puzzle.oneSolutionMoves){const key=`${move.row},${move.column}`;if(parity.has(key))parity.delete(key);else parity.add(key)}const key=parity.values().next().value as string|undefined;if(!key)return state;const [row,column]=key.split(',').map(Number);return{...state,hint:{row,column},hintCount:state.hintCount+1}}
+export function restore(puzzle:LightsOutPuzzle,state:LightsOutState){let replay=[...puzzle.initialState];for(const move of state.history)applyPress(replay,move);if(replay.some((value,index)=>value!==state.cells[index]))throw new Error('保存状態と操作履歴が一致しません。');return state}
