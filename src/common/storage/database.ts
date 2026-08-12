@@ -5,3 +5,4 @@ const database = () => openDB('puzzle-collection', 1, { upgrade(db) { if (!db.ob
 export async function saveSession<T>(session: SavedGame<T>) { return (await database()).put('sessions', session) }
 export async function loadSession<T>(gameId: string, puzzleId: string) { return (await database()).get('sessions', [gameId, puzzleId]) as Promise<SavedGame<T> | undefined> }
 export async function deleteSession(gameId: string, puzzleId: string) { return (await database()).delete('sessions', [gameId, puzzleId]) }
+export async function listSessions<T>(gameId: string) { const all=await (await database()).getAll('sessions') as SavedGame<T>[];return all.filter(session=>session.gameId===gameId) }

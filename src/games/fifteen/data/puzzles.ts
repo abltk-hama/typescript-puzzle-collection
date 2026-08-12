@@ -1,0 +1,8 @@
+import { z } from 'zod'
+import type { FifteenPuzzle } from '../domain/fifteen'
+import { GOAL,moveTile,sameTiles } from '../domain/fifteen'
+const item=z.object({id:z.string().min(1),title:z.string().min(1),difficulty:z.enum(['easy','medium','hard']),problem:z.object({initial_tiles:z.array(z.number().int().min(0).max(15)).length(16)}),answer:z.object({known_solution:z.array(z.number().int().min(1).max(15))}),metadata:z.record(z.string(),z.unknown()).default({})})
+const file=z.object({schema_version:z.literal(1),game_type:z.literal('fifteen'),puzzles:z.array(item).min(1)})
+export function validatePuzzle(puzzle:FifteenPuzzle){if(new Set(puzzle.initialTiles).size!==16||![...puzzle.initialTiles].sort((a,b)=>a-b).every((value,index)=>value===index))throw new Error(`初期配置が不正です: ${puzzle.id}`);let state=[...puzzle.initialTiles];for(const tile of puzzle.knownSolution){const moved=moveTile(state,tile);if(!moved)throw new Error(`既知解に不正な移動があります: ${puzzle.id}`);state=moved}if(!sameTiles(state,GOAL))throw new Error(`既知解で完成しません: ${puzzle.id}`);return puzzle}
+export function parsePuzzles(raw:unknown):FifteenPuzzle[]{const parsed=file.parse(raw),ids=new Set<string>();return parsed.puzzles.map(value=>{if(ids.has(value.id))throw new Error(`問題IDが重複しています: ${value.id}`);ids.add(value.id);return validatePuzzle({id:value.id,title:value.title,difficulty:value.difficulty,initialTiles:value.problem.initial_tiles,knownSolution:value.answer.known_solution,metadata:value.metadata})})}
+export async function loadBundledPuzzles(){const response=await fetch(`${import.meta.env.BASE_URL}puzzles/fifteen/puzzles.json`);if(!response.ok)throw new Error('15パズルの問題データを取得できません。');return parsePuzzles(await response.json())}
