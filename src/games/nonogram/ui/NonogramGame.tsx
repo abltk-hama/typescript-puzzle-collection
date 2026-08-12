@@ -101,6 +101,7 @@ export function NonogramGame({
   function begin(index: number, event: React.PointerEvent) {
     if (complete || state.hinted.includes(index)) return;
     event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
     drag.current = {
       origin: index,
       indices: [index],
@@ -108,6 +109,15 @@ export function NonogramGame({
       target: event.button === 2 ? 2 : state.inputMode,
     };
     setState((current) => ({ ...current, selected: index }));
+  }
+  function move(event: React.PointerEvent<HTMLDivElement>) {
+    if (!drag.current) return;
+    event.preventDefault();
+    const target = document
+      .elementFromPoint(event.clientX, event.clientY)
+      ?.closest<HTMLElement>("[data-nonogram-index]");
+    if (target?.dataset.nonogramIndex !== undefined)
+      enter(Number(target.dataset.nonogramIndex));
   }
   function enter(index: number) {
     const current = drag.current;
@@ -140,8 +150,10 @@ export function NonogramGame({
   function hint(random = false) {
     const unresolved = state.cells
         .map((cell, index) => ({ cell, index }))
-        .filter(({ cell, index }) =>
-          !state.hinted.includes(index) && cell !== (puzzle.solution[index] ? 1 : 2),
+        .filter(
+          ({ cell, index }) =>
+            !state.hinted.includes(index) &&
+            cell !== (puzzle.solution[index] ? 1 : 2),
         ),
       preferred = random
         ? unresolved[Math.floor(Math.random() * unresolved.length)]?.index
@@ -233,7 +245,7 @@ export function NonogramGame({
           </button>
         </div>
         <div
-          className="nonogram-layout"
+          className={`nonogram-layout size-${puzzle.width}`}
           style={{ "--nonogram-size": cellSize } as React.CSSProperties}
         >
           <div />
@@ -274,10 +286,12 @@ export function NonogramGame({
               gridTemplateColumns: `repeat(${puzzle.width},var(--nonogram-size))`,
             }}
             onContextMenu={(event) => event.preventDefault()}
+            onPointerMove={move}
           >
             {state.cells.map((cell, index) => (
               <button
                 key={index}
+                data-nonogram-index={index}
                 role="gridcell"
                 aria-label={`${Math.floor(index / puzzle.width) + 1}行${(index % puzzle.width) + 1}列 ${cell === 1 ? "塗り" : cell === 2 ? "空き" : "未確定"}`}
                 className={`${cell === 1 ? "filled" : cell === 2 ? "marked" : ""} ${state.hinted.includes(index) ? "hinted" : ""} ${state.selected === index ? "selected" : ""}`}
@@ -290,7 +304,7 @@ export function NonogramGame({
           </div>
         </div>
         <p className="operation-help">
-          左ドラッグ: 選択中の入力　／　右クリック・右ドラッグ:
+          ドラッグ: 選択中の入力　／　PCの右クリック・右ドラッグ:
           ×　／　水平・垂直の1ストロークを一手として記録
         </p>
         <div className="actions">
