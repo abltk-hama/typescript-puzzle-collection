@@ -12,9 +12,13 @@ import { loadBundledPuzzles as loadMastermind } from '../games/mastermind/data/p
 import type { MastermindPuzzle } from '../games/mastermind/domain/mastermind'
 import { MastermindGame } from '../games/mastermind/ui/MastermindGame'
 import { MastermindSetup } from '../games/mastermind/ui/MastermindSetup'
+import { loadBundledPuzzles as loadMaze } from '../games/maze/data/puzzles'
+import type { MazePuzzle } from '../games/maze/domain/maze'
+import { MazeGame } from '../games/maze/ui/MazeGame'
+import { MazeSetup } from '../games/maze/ui/MazeSetup'
 
-export type GameId='lights_out'|'fifteen'|'mastermind'
+export type GameId='lights_out'|'fifteen'|'mastermind'|'maze'
 export interface GameRegistration{id:GameId;displayName:string;description:string;icon:string;cardClass?:string;render:(onLauncher:()=>void)=>ReactNode}
 function register<P>(definition:{id:GameId;displayName:string;description:string;icon:string;cardClass?:string;loadPuzzles:()=>Promise<P[]>;Setup:ComponentType<SetupProps<P>>;Game:ComponentType<GameProps<P>>}):GameRegistration{return{id:definition.id,displayName:definition.displayName,description:definition.description,icon:definition.icon,cardClass:definition.cardClass,render:onLauncher=><GameFlow loadPuzzles={definition.loadPuzzles} Setup={definition.Setup} Game={definition.Game} onLauncher={onLauncher}/>}}
-export const gameCatalog:readonly GameRegistration[]=[register<LightsOutPuzzle>({id:'lights_out',displayName:'ライツアウト',description:'光るマスをすべて消そう',icon:'✦',loadPuzzles:loadLights,Setup:LightsOutSetup,Game:LightsOutGame}),register<FifteenPuzzle>({id:'fifteen',displayName:'15パズル',description:'駒を順番に並べよう',icon:'15',cardClass:'fifteen-card',loadPuzzles:loadFifteen,Setup:FifteenSetup,Game:FifteenGame}),register<MastermindPuzzle>({id:'mastermind',displayName:'マスターマインド',description:'色と位置を推理しよう',icon:'●',cardClass:'mastermind-card',loadPuzzles:loadMastermind,Setup:MastermindSetup,Game:MastermindGame})]
+export const gameCatalog:readonly GameRegistration[]=[register<LightsOutPuzzle>({id:'lights_out',displayName:'ライツアウト',description:'光るマスをすべて消そう',icon:'✦',loadPuzzles:loadLights,Setup:LightsOutSetup,Game:LightsOutGame}),register<FifteenPuzzle>({id:'fifteen',displayName:'15パズル',description:'駒を順番に並べよう',icon:'15',cardClass:'fifteen-card',loadPuzzles:loadFifteen,Setup:FifteenSetup,Game:FifteenGame}),register<MastermindPuzzle>({id:'mastermind',displayName:'マスターマインド',description:'色と位置を推理しよう',icon:'●',cardClass:'mastermind-card',loadPuzzles:loadMastermind,Setup:MastermindSetup,Game:MastermindGame}),register<MazePuzzle>({id:'maze',displayName:'迷路',description:'道を探してゴールへ進もう',icon:'⌁',cardClass:'maze-card',loadPuzzles:loadMaze,Setup:MazeSetup,Game:MazeGame})]
 export function findGame(id:GameId|null){return gameCatalog.find(game=>game.id===id)}
