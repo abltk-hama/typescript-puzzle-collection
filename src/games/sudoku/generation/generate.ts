@@ -1,0 +1,5 @@
+import type { Difficulty,SudokuPuzzle } from '../domain/sudoku'
+import { countSolutions,solveSudoku } from './solver'
+export const PROFILES={easy:{label:'やさしめ',clues:40},medium:{label:'標準',clues:34},hard:{label:'難しめ',clues:29}} as const
+function rng(seed:number){let x=seed||1;return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return(x>>>0)/4294967296}}
+export function generateSudoku(seed:number,profile:keyof typeof PROFILES,onProgress?:(value:number)=>void):SudokuPuzzle{const random=rng(seed),solved=solveSudoku(Array(81).fill(0),1,random).solution;if(!solved)throw new Error('完成盤面を生成できませんでした。');const givens=[...solved],indices=Array.from({length:81},(_,i)=>i).sort(()=>random()-.5),target=PROFILES[profile].clues;for(let n=0;n<indices.length&&givens.filter(Boolean).length>target;n++){const index=indices[n],old=givens[index];givens[index]=0;if(countSolutions(givens,2)!==1)givens[index]=old;onProgress?.(Math.round((n+1)/indices.length*100))}const id=`generated-${seed.toString(16)}`;return{id,title:`生成問題 ${new Date().toLocaleString('ja-JP')}`,difficulty:'generated' as Difficulty,givens,solution:solved,generated:true,estimatedDifficulty:profile}}

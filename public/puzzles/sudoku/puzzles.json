@@ -1,0 +1,594 @@
+{
+  "schema_version": 1,
+  "game_type": "sudoku",
+  "puzzles": [
+    {
+      "id": "sudoku-easy-001",
+      "title": "かんたん 1",
+      "difficulty": "easy",
+      "problem": {
+        "givens": "530070000600195000098000060800060003400803001700020006060000280000419005000080079"
+      },
+      "answer": {
+        "solution": "534678912672195348198342567859761423426853791713924856961537284287419635345286179"
+      },
+      "metadata": {
+        "tags": [
+          "classic"
+        ]
+      }
+    },
+    {
+      "id": "sudoku-medium-001",
+      "title": "ふつう 1",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "000260701680070090190004500820100040004602900050003028009300074040050036703018000"
+      },
+      "answer": {
+        "solution": "435269781682571493197834562826195347374682915951743628519326874248957136763418259"
+      },
+      "metadata": {
+        "tags": [
+          "classic"
+        ]
+      }
+    },
+    {
+      "id": "sudoku-hard-001",
+      "title": "むずかしい 1",
+      "difficulty": "hard",
+      "problem": {
+        "givens": "000000907000420180000705026100904000050000040000507009920108000034059000507000000"
+      },
+      "answer": {
+        "solution": "462831957795426183381795426173984265659312748248567319926178534834259671517643892"
+      },
+      "metadata": {
+        "tags": [
+          "classic"
+        ]
+      }
+    },
+    {
+      "id": "sudoku-generated-437e1e4b7296",
+      "title": "生成候補 001",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "000960001006008050000473006205000304700602005609000802300751000070800500100029000"
+      },
+      "answer": {
+        "solution": "827965431436218759591473286285197364743682195619534872364751928972846513158329647"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12345,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 54,
+          "nodes": 50,
+          "branch_count": 1,
+          "backtrack_count": 0,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-7c55e058d456",
+      "title": "生成候補 002",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "500806000000900050270050091029700085005000400840001360930080074050007000000309002"
+      },
+      "answer": {
+        "solution": "591876243483912756276453891629734185315698427847521369932185674154267938768349512"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12346,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 49,
+          "nodes": 50,
+          "branch_count": 0,
+          "backtrack_count": 0,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-b0cfdc473177",
+      "title": "生成候補 003",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "040300905000201006003060870000052090900603008020710000019080500800907000604005080"
+      },
+      "answer": {
+        "solution": "146378925587291346293564871361852497975643218428719653719486532852937164634125789"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12347,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 54,
+          "nodes": 50,
+          "branch_count": 1,
+          "backtrack_count": 0,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-5bb136a641d1",
+      "title": "生成候補 004",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "000200001100803960082001057090130000060000090000085040450300610071609008900008000"
+      },
+      "answer": {
+        "solution": "539267481147853962682491357294136875865724193713985246458372619371649528926518734"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12348,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 49,
+          "nodes": 50,
+          "branch_count": 0,
+          "backtrack_count": 0,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-a6f7eae4e2b4",
+      "title": "生成候補 005",
+      "difficulty": "hard",
+      "problem": {
+        "givens": "080007000105080003030152870008090050009000100060020700092513080400060309000400060"
+      },
+      "answer": {
+        "solution": "286937541175684923934152876748391652529746138361825794692513487457268319813479265"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12349,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 173,
+          "nodes": 107,
+          "branch_count": 2,
+          "backtrack_count": 57,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-a605e6cb19e6",
+      "title": "生成候補 006",
+      "difficulty": "hard",
+      "problem": {
+        "givens": "900060700005790006070005010050970030009601400060053070040800090100026800002030007"
+      },
+      "answer": {
+        "solution": "923168754415792386678345219251974638739681425864253971346817592197526843582439167"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12350,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 96,
+          "nodes": 66,
+          "branch_count": 3,
+          "backtrack_count": 16,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-510ae6171ce6",
+      "title": "生成候補 007",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "100300007350409200200008039020007000071080690000600020930100006002803015600005002"
+      },
+      "answer": {
+        "solution": "189326457357419268264578139426937581571284693893651724935142876742863915618795342"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12351,
+        "profile": "standard",
+        "clue_count": 33,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 63,
+          "nodes": 49,
+          "branch_count": 3,
+          "backtrack_count": 0,
+          "max_depth": 48
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-9ff4e6552ccc",
+      "title": "生成候補 008",
+      "difficulty": "hard",
+      "problem": {
+        "givens": "704003001005001308000045000007010093049000180530090200000760000803100700400300502"
+      },
+      "answer": {
+        "solution": "764823951925671348318945627287516493649237185531498276152764839893152764476389512"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12352,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 140,
+          "nodes": 88,
+          "branch_count": 3,
+          "backtrack_count": 38,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-bccb8aa3c34b",
+      "title": "生成候補 009",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "105008049400001082000309100900100000520060013000002005008405000250900004690200501"
+      },
+      "answer": {
+        "solution": "175628349439571682862349157946153728527864913381792465718435296253916874694287531"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12353,
+        "profile": "standard",
+        "clue_count": 33,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 78,
+          "nodes": 59,
+          "branch_count": 2,
+          "backtrack_count": 10,
+          "max_depth": 48
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-31c35a0828ec",
+      "title": "生成候補 010",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "041308000962100000003000670020000509005406300409000010014000200000004195000201830"
+      },
+      "answer": {
+        "solution": "741368952962157483853942671628713549175496328439825716314589267287634195596271834"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12354,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 54,
+          "nodes": 50,
+          "branch_count": 1,
+          "backtrack_count": 0,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-dcea72cdc49f",
+      "title": "生成候補 011",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "415060002703000900020000100000951004100206008600873000007000010006000509500090873"
+      },
+      "answer": {
+        "solution": "415769382763128945928534167872951634139246758654873291297385416386417529541692873"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12355,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 49,
+          "nodes": 50,
+          "branch_count": 0,
+          "backtrack_count": 0,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-67d289f99a26",
+      "title": "生成候補 012",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "000200401040700003500400078238107006000000000900605832320004005100002080805006000"
+      },
+      "answer": {
+        "solution": "783259461642781953591463278238197546456328197917645832329874615164532789875916324"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12356,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 77,
+          "nodes": 54,
+          "branch_count": 4,
+          "backtrack_count": 4,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-14486622c7ef",
+      "title": "生成候補 013",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "210060500730000010405000060003590000508107604000036900070000806060000095001080073"
+      },
+      "answer": {
+        "solution": "219368547736459218485271369623594781598127634147836952374915826862743195951682473"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12357,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 54,
+          "nodes": 50,
+          "branch_count": 1,
+          "backtrack_count": 0,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-572e271c7bd5",
+      "title": "生成候補 014",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "093050070008147900000000006856900000040801030000004289100000000005293700020010390"
+      },
+      "answer": {
+        "solution": "293658174568147923714329856856932417942871635371564289139786542485293761627415398"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12358,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 59,
+          "nodes": 50,
+          "branch_count": 2,
+          "backtrack_count": 0,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-d87df092ca82",
+      "title": "生成候補 015",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "957006000601508700020090006200000300806000405003000001100040070004205803000100654"
+      },
+      "answer": {
+        "solution": "957436128631528749428791536219654387876312495543987261165843972794265813382179654"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12359,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 49,
+          "nodes": 50,
+          "branch_count": 0,
+          "backtrack_count": 0,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-149e870b5085",
+      "title": "生成候補 016",
+      "difficulty": "hard",
+      "problem": {
+        "givens": "050804000000703008023009740075000092006000500280000170038100450100506000000908010"
+      },
+      "answer": {
+        "solution": "759824361461753928823619745375461892916287534284395176638172459197546283542938617"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12360,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 114,
+          "nodes": 75,
+          "branch_count": 3,
+          "backtrack_count": 25,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-b3eca6d98757",
+      "title": "生成候補 017",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "090080000608000093040026080860143000400000007000752068010570030270000805000030070"
+      },
+      "answer": {
+        "solution": "791385624628417593345926781867143952452869317139752468914578236273691845586234179"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12361,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 49,
+          "nodes": 50,
+          "branch_count": 0,
+          "backtrack_count": 0,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-55c83d154c93",
+      "title": "生成候補 018",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "170005640400000000020040301002517000950000067000896500506070020000000004098100056"
+      },
+      "answer": {
+        "solution": "173285649489361275625749381862517493951432867734896512546973128217658934398124756"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12362,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 91,
+          "nodes": 61,
+          "branch_count": 4,
+          "backtrack_count": 11,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-b21be8510224",
+      "title": "生成候補 019",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "080351000500872690000090000031000504090000010405000370000010000027946003000583060"
+      },
+      "answer": {
+        "solution": "689351427543872691172694835231769584798435216465128379356217948827946153914583762"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12363,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 49,
+          "nodes": 50,
+          "branch_count": 0,
+          "backtrack_count": 0,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    },
+    {
+      "id": "sudoku-generated-ad9f43990288",
+      "title": "生成候補 020",
+      "difficulty": "medium",
+      "problem": {
+        "givens": "000000704020014003400095028600500030200601007080002005160870009700150040508000000"
+      },
+      "answer": {
+        "solution": "953268714826714593471395628619587432245631987387942165164873259732159846598426371"
+      },
+      "metadata": {
+        "source": "generated",
+        "generator_version": 1,
+        "seed": 12364,
+        "profile": "standard",
+        "clue_count": 32,
+        "difficulty_estimate": {
+          "method": "search_complexity_v1",
+          "score": 49,
+          "nodes": 50,
+          "branch_count": 0,
+          "backtrack_count": 0,
+          "max_depth": 49
+        },
+        "difficulty_is_estimate": true
+      }
+    }
+  ]
+}
