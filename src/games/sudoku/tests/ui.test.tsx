@@ -23,7 +23,11 @@ async function renderGame(targetPuzzle = puzzle) {
   await deleteSudokuSession(targetPuzzle.id);
   const user = userEvent.setup(),
     view = render(
-      <SudokuGame puzzle={targetPuzzle} onBack={vi.fn()} onLauncher={vi.fn()} />,
+      <SudokuGame
+        puzzle={targetPuzzle}
+        onBack={vi.fn()}
+        onLauncher={vi.fn()}
+      />,
     );
   await waitFor(() =>
     expect(screen.getByRole("grid", { name: "数独盤面" })).toBeInTheDocument(),
@@ -41,7 +45,9 @@ it("shows digit counts and focuses every occurrence of a selected digit", async 
   expect(
     screen.getByRole("button", { name: "数字フォーカス ON：5" }),
   ).toBeInTheDocument();
-  expect(view.container.querySelectorAll('[data-focus="digit"]')).toHaveLength(3);
+  expect(view.container.querySelectorAll('[data-focus="digit"]')).toHaveLength(
+    3,
+  );
   expect(
     view.container.querySelectorAll('[data-focus="constraint"]').length,
   ).toBeGreaterThan(0);
@@ -54,7 +60,9 @@ it("presents a logical hint without filling its target cell", async () => {
     .map((cell) => cell.textContent)
     .join("|");
   await user.click(screen.getByRole("button", { name: "確定候補を探す" }));
-  expect(view.container.querySelector('[data-logical="target"]')).not.toBeNull();
+  expect(
+    view.container.querySelector('[data-logical="target"]'),
+  ).not.toBeNull();
   expect(screen.getByText(/このマスだけ|候補は/)).toBeInTheDocument();
   expect(
     screen
@@ -89,7 +97,9 @@ it("does not enable digit focus from a near-complete cell while focus is off", a
   };
   const { user } = await renderGame(almostComplete);
   await user.click(screen.getByRole("gridcell", { name: "1行9列" }));
-  expect(screen.getByRole("button", { name: "数字フォーカス OFF" })).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "数字フォーカス OFF" }),
+  ).toBeInTheDocument();
 });
 
 it("adds candidates as notes and removes invalid notes", async () => {
@@ -104,4 +114,19 @@ it("adds candidates as notes and removes invalid notes", async () => {
   await user.click(screen.getByRole("button", { name: /メモを整理（1）/ }));
   expect(target).toHaveTextContent("124");
   expect(screen.getByText("不要なメモを1件削除しました。")).toBeInTheDocument();
+});
+
+it("creates and restores a hypothesis checkpoint", async () => {
+  const { user } = await renderGame();
+  await user.click(screen.getByRole("button", { name: "ここから試す" }));
+  expect(screen.getByText(/仮説チェックポイント: 1\/3/)).toBeInTheDocument();
+  await user.click(screen.getByRole("gridcell", { name: "1行3列" }));
+  await user.click(screen.getByRole("button", { name: "数字 4" }));
+  expect(
+    screen.getByRole("gridcell", { name: "1行3列 4" }),
+  ).toBeInTheDocument();
+  vi.spyOn(window, "confirm").mockReturnValueOnce(true);
+  await user.click(screen.getByRole("button", { name: "保存地点へ戻る" }));
+  expect(screen.getByRole("gridcell", { name: "1行3列" })).toBeInTheDocument();
+  expect(screen.getByText(/仮説チェックポイント: 0\/3/)).toBeInTheDocument();
 });
