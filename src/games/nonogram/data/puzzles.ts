@@ -53,8 +53,10 @@ export function parsePuzzles(raw: unknown) {
     return puzzle;
   });
 }
+export const bundledPuzzlesUrl = (baseUrl: string) =>
+  `${baseUrl}puzzles/nonogram/puzzles.json`;
 export async function loadBundledPuzzles() {
-  const response = await fetch("/puzzles/nonogram/puzzles.json");
+  const response = await fetch(bundledPuzzlesUrl(import.meta.env.BASE_URL));
   if (!response.ok) throw new Error("ノノグラム問題を読み込めませんでした。");
   return parsePuzzles(await response.json());
 }

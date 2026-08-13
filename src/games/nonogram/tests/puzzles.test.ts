@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parsePuzzles } from "../data/puzzles";
+import { bundledPuzzlesUrl, parsePuzzles } from "../data/puzzles";
 const item = {
   id: "cross",
   title: "十字",
@@ -42,4 +42,8 @@ describe("Nonogram puzzle data", () => {
         ],
       }),
     ).toThrow(/不正/));
+  it("resolves bundled data under the configured base path", () =>
+    expect(bundledPuzzlesUrl("/typescript-puzzle-collection/")).toBe(
+      "/typescript-puzzle-collection/puzzles/nonogram/puzzles.json",
+    ));
 });
