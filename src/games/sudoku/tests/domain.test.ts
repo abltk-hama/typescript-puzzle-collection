@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   candidates,
+  applyLogicalHint,
+  addCandidateNotes,
+  cleanCandidateNotes,
   conflicts,
   enterNumber,
+  findHiddenSingle,
+  findLogicalHint,
+  findNakedSingle,
+  nearCompleteUnits,
   initialSudoku,
   isComplete,
   lightHint,
@@ -59,5 +66,56 @@ describe("Sudoku domain", () => {
     expect(isComplete({ ...initialSudoku(puzzle), values: solution })).toBe(
       true,
     );
+  });
+  it("finds a naked single before other logical hints", () => {
+    const values = [...solution];
+    values[0] = 0;
+    expect(findNakedSingle(values)).toMatchObject({
+      index: 0,
+      digit: 5,
+      kind: "naked-single",
+    });
+    expect(findLogicalHint(values)?.kind).toBe("naked-single");
+  });
+  it("finds hidden singles in rows, columns, and blocks", () => {
+    expect(findHiddenSingle(givens, "row")).toMatchObject({
+      kind: "hidden-single-row",
+    });
+    expect(findHiddenSingle(givens, "column")).toMatchObject({
+      kind: "hidden-single-column",
+    });
+    expect(findHiddenSingle(givens, "block")).toMatchObject({
+      kind: "hidden-single-block",
+    });
+  });
+  it("only counts the same logical hint once for an unchanged board", () => {
+    const values = [...solution];
+    values[0] = 0;
+    const hint = findLogicalHint(values)!;
+    const once = applyLogicalHint({ ...initialSudoku(puzzle), values }, hint);
+    expect(once.selected).toBe(0);
+    expect(applyLogicalHint(once, hint).hintCount).toBe(1);
+  });
+  it("detects valid and contradictory units with one empty cell", () => {
+    const values = [...solution];
+    values[8] = 0;
+    expect(nearCompleteUnits(values)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "row", unitIndex: 0, emptyIndex: 8, missing: [2], valid: true }),
+        expect.objectContaining({ kind: "column", unitIndex: 8, emptyIndex: 8, missing: [2], valid: true }),
+        expect.objectContaining({ kind: "block", unitIndex: 2, emptyIndex: 8, missing: [2], valid: true }),
+      ]),
+    );
+    values[0] = 3;
+    expect(nearCompleteUnits(values).find((unit) => unit.kind === "row" && unit.unitIndex === 0)?.valid).toBe(false);
+  });
+  it("adds candidates to the selected cell and cleans invalid notes", () => {
+    const base = selectCell(initialSudoku(puzzle), 2),
+      noted = addCandidateNotes(base);
+    expect(noted.notes[2]).toEqual([1, 2, 4]);
+    const dirty = { ...noted, notes: noted.notes.map((list, index) => index === 2 ? [...list, 5] : list) },
+      cleaned = cleanCandidateNotes(dirty);
+    expect(cleaned.removed).toBe(1);
+    expect(cleaned.state.notes[2]).toEqual([1, 2, 4]);
   });
 });
