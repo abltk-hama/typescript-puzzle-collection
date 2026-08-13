@@ -30,7 +30,10 @@ import {
   loadSudokuSession,
   saveSudokuSession,
 } from "../data/sessions";
+import { loadAssistSettings, saveAssistSettings } from "../../../common/storage/gameAssistSettings";
 type Phase = "loading" | "ask" | "play";
+interface SudokuAssistSettings { nearCompleteHighlight:boolean }
+const sudokuAssistDefaults:SudokuAssistSettings={nearCompleteHighlight:true};
 export function SudokuGame({
   puzzle,
   onBack,
@@ -46,6 +49,8 @@ export function SudokuGame({
     [focusMode, setFocusMode] = useState(false),
     [focusedDigit, setFocusedDigit] = useState<number | null>(null),
     [logicalHint, setLogicalHint] = useState<LogicalHint | null>(null),
+    [assistSettings,setAssistSettings]=useState(()=>loadAssistSettings("sudoku",sudokuAssistDefaults)),
+    [settingsOpen,setSettingsOpen]=useState(false),
     saved = useRef<SudokuState | undefined>(undefined),
     board = useRef<HTMLDivElement>(null),
     complete = isComplete(state),
@@ -82,6 +87,7 @@ export function SudokuGame({
   useEffect(() => {
     if (phase === "play") board.current?.focus();
   }, [phase]);
+  useEffect(()=>saveAssistSettings("sudoku",assistSettings),[assistSettings]);
   const selectedValue =
       state.selected === null ? 0 : state.values[state.selected],
     used =
@@ -117,7 +123,8 @@ export function SudokuGame({
     if(!units.length)return;
     const valid=units.filter(unit=>unit.valid),digits=[...new Set(valid.map(unit=>unit.missing[0]))];
     if(valid.length===units.length&&digits.length===1){
-      setFocusMode(true);setFocusedDigit(digits[0]);
+      if(!focusMode)return;
+      setFocusedDigit(digits[0]);
       const labels=valid.map(unit=>unit.kind==="row"?"行":unit.kind==="column"?"列":"3×3ブロック").join("・");
       setMessage(`${labels}で不足している数字は${digits[0]}です。入力前に配置を確認してください。`);
     }else{
@@ -257,7 +264,7 @@ export function SudokuGame({
                 className={`${fixed ? "fixed" : ""} ${state.hinted.includes(index) ? "hinted" : ""} ${state.selected === index ? "selected" : ""} ${related ? "related" : ""} ${same ? "same" : ""} ${conflicting.has(index) ? "conflict" : ""}`}
                   data-focus={focusedDigit!==null&&value===focusedDigit?"digit":focusedDigit!==null&&focusConstraints.has(index)?"constraint":undefined}
                   data-logical={logicalHint?.index===index?"target":hintScope.has(index)?"scope":undefined}
-                  data-near={contradictoryEmptyCells.has(index)?"conflict":nearEmptyCells.has(index)?"empty":nearCells.has(index)?"unit":undefined}
+                  data-near={!assistSettings.nearCompleteHighlight?undefined:contradictoryEmptyCells.has(index)?"conflict":nearEmptyCells.has(index)?"empty":nearCells.has(index)?"unit":undefined}
                   onClick={() => selectBoardCell(index,value)}
                   onContextMenu={(event) => {
                     event.preventDefault();
@@ -278,10 +285,21 @@ export function SudokuGame({
             })}
           </div>
         </div>
-        <p className="operation-help">
-          左クリック: マス選択　／　右クリック:
-          メモ入力へ切替　／　数字キー・テンキー対応
-        </p>
+        <MessagePanel
+          message={complete?`完成しました！（ヒント使用 ${state.hintCount}回）`:message}
+        />
+        <div className="assist-settings">
+          <button className="button secondary" onClick={()=>setSettingsOpen(open=>!open)}>
+            補助設定{settingsOpen?"を閉じる":"を開く"}
+          </button>
+          {settingsOpen&&<div className="assist-settings-panel">
+            <label><input type="checkbox" checked={focusMode} onChange={event=>{setFocusMode(event.target.checked);if(!event.target.checked)setFocusedDigit(null)}}/> 数字フォーカス</label>
+            <label><input type="checkbox" checked={assistSettings.nearCompleteHighlight} onChange={event=>setAssistSettings({...assistSettings,nearCompleteHighlight:event.target.checked})}/> 完成直前単位を強調</label>
+            <p>数字フォーカスON時のみ、完成直前マスの不足数字を自動フォーカスします。</p>
+            <p>左クリック: マス選択／右クリック: メモ入力へ切替／数字キー・テンキー対応</p>
+          </div>}
+        </div>
+        <h2 className="action-heading">入力補助</h2>
         <div className="actions">
           <button
             className="button secondary"
@@ -305,6 +323,9 @@ export function SudokuGame({
           >
             メモを整理{removableNotes?`（${removableNotes}）`:""}
           </button>
+        </div>
+        <h2 className="action-heading">ヒント</h2>
+        <div className="actions">
           <button
             className="button hint"
             disabled={complete || state.selected === null}
@@ -355,13 +376,6 @@ export function SudokuGame({
             1マス開示
           </button>
         </div>
-        <MessagePanel
-          message={
-            complete
-              ? `完成しました！（ヒント使用 ${state.hintCount}回）`
-              : message
-          }
-        />
         <GameFooter
           onBack={onBack}
           onLauncher={onLauncher}

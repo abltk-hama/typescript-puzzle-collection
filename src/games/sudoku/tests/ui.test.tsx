@@ -73,11 +73,23 @@ it("focuses the missing digit when selecting the last empty cell of a unit", asy
   };
   const { user, view } = await renderGame(almostComplete);
   expect(view.container.querySelector('[data-near="empty"]')).not.toBeNull();
+  await user.click(screen.getByRole("button", { name: "数字フォーカス OFF" }));
   await user.click(screen.getByRole("gridcell", { name: "1行9列" }));
   expect(
     screen.getByRole("button", { name: "数字フォーカス ON：2" }),
   ).toBeInTheDocument();
   expect(screen.getByText(/不足している数字は2/)).toBeInTheDocument();
+});
+
+it("does not enable digit focus from a near-complete cell while focus is off", async () => {
+  const almostComplete: SudokuPuzzle = {
+    ...puzzle,
+    id: "sudoku-ui-near-complete-focus-off",
+    givens: solution.map((value, index) => (index === 8 ? 0 : value)),
+  };
+  const { user } = await renderGame(almostComplete);
+  await user.click(screen.getByRole("gridcell", { name: "1行9列" }));
+  expect(screen.getByRole("button", { name: "数字フォーカス OFF" })).toBeInTheDocument();
 });
 
 it("adds candidates as notes and removes invalid notes", async () => {

@@ -24,7 +24,10 @@ export interface NonogramState {
   selected: number | null;
   hinted: number[];
   hintCount: number;
+  logicalHintSignature?: string | null;
 }
+export type LineStatus = "incomplete" | "complete" | "contradiction";
+export interface NonogramLogicalHint { index: number; value: 1 | 2; kind: "row" | "column"; line: number; signature: string }
 
 export function cluesForLine(line: boolean[]) {
   const clues: number[] = [];
@@ -84,6 +87,12 @@ export function lineComplete(
       : offset * puzzle.width + line,
   ).every((index) => (state.cells[index] === 1) === puzzle.solution[index]);
 }
+function patterns(length:number,clues:number[]){const result:boolean[][]=[];function place(clueIndex:number,start:number,line:boolean[]){if(clueIndex===clues.length){result.push(line);return}const remaining=clues.slice(clueIndex+1).reduce((a,b)=>a+b,0)+Math.max(0,clues.length-clueIndex-1);for(let position=start;position+clues[clueIndex]+remaining<=length;position++){const next=[...line];for(let i=0;i<clues[clueIndex];i++)next[position+i]=true;place(clueIndex+1,position+clues[clueIndex]+1,next)}}if(!clues.length)return[Array(length).fill(false)];place(0,0,Array(length).fill(false));return result}
+export function lineIndices(puzzle:NonogramPuzzle,kind:"row"|"column",line:number){const length=kind==="row"?puzzle.width:puzzle.height;return Array.from({length},(_,offset)=>kind==="row"?line*puzzle.width+offset:offset*puzzle.width+line)}
+export function compatibleLinePatterns(puzzle:NonogramPuzzle,state:NonogramState,kind:"row"|"column",line:number){const indices=lineIndices(puzzle,kind,line),clues=kind==="row"?puzzle.rowClues[line]:puzzle.columnClues[line];return patterns(indices.length,clues).filter(pattern=>pattern.every((filled,offset)=>state.cells[indices[offset]]===0||(state.cells[indices[offset]]===1)===filled))}
+export function lineStatus(puzzle:NonogramPuzzle,state:NonogramState,kind:"row"|"column",line:number):LineStatus{const options=compatibleLinePatterns(puzzle,state,kind,line);if(!options.length)return"contradiction";return lineIndices(puzzle,kind,line).every(index=>state.cells[index]!==0)&&options.length===1?"complete":"incomplete"}
+export function findNonogramLogicalHint(puzzle:NonogramPuzzle,state:NonogramState):NonogramLogicalHint|null{for(const kind of["row","column"] as const){const count=kind==="row"?puzzle.height:puzzle.width;for(let line=0;line<count;line++){const indices=lineIndices(puzzle,kind,line),options=compatibleLinePatterns(puzzle,state,kind,line);if(!options.length)continue;for(let offset=0;offset<indices.length;offset++){const index=indices[offset];if(state.cells[index]!==0)continue;const first=options[0][offset];if(options.every(pattern=>pattern[offset]===first))return{index,value:first?1:2,kind,line,signature:`${kind}:${line}:${index}:${first?1:2}:${state.cells.join("")}`}}}}return null}
+export function hasLineContradiction(puzzle:NonogramPuzzle,state:NonogramState){return puzzle.rowClues.some((_,line)=>lineStatus(puzzle,state,"row",line)==="contradiction")||puzzle.columnClues.some((_,line)=>lineStatus(puzzle,state,"column",line)==="contradiction")}
 export function applyStroke(
   puzzle: NonogramPuzzle,
   state: NonogramState,

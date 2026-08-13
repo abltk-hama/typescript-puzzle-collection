@@ -9,7 +9,9 @@ import {
   hasProgress,
   initialNonogram,
   isComplete,
-  lineComplete,
+  findNonogramLogicalHint,
+  hasLineContradiction,
+  lineStatus,
   revealCell,
   undoStroke,
 } from "../domain/nonogram";
@@ -18,7 +20,10 @@ import {
   loadNonogramSession,
   saveNonogramSession,
 } from "../data/sessions";
+import { loadAssistSettings, saveAssistSettings } from "../../../common/storage/gameAssistSettings";
 type Phase = "loading" | "ask" | "play";
+interface NonogramAssistSettings { lineFocus:boolean; lineStatus:boolean }
+const nonogramAssistDefaults:NonogramAssistSettings={lineFocus:true,lineStatus:true};
 interface Drag {
   origin: number;
   indices: number[];
@@ -39,22 +44,17 @@ export function NonogramGame({
     ),
     [phase, setPhase] = useState<Phase>("loading"),
     [message, setMessage] = useState("ゲームを開始しました。"),
+    [assistSettings,setAssistSettings]=useState(()=>loadAssistSettings("nonogram",nonogramAssistDefaults)),
+    [settingsOpen,setSettingsOpen]=useState(false),
+    [logicalHint,setLogicalHint]=useState<ReturnType<typeof findNonogramLogicalHint>>(null),
     saved = useRef<NonogramState | undefined>(undefined),
     drag = useRef<Drag | null>(null),
     stateRef = useRef(state),
     complete = isComplete(puzzle, state),
-    completedRows = useMemo(
-      () =>
-        puzzle.rowClues.map((_, i) => lineComplete(puzzle, state, "row", i)),
-      [puzzle, state],
-    ),
-    completedColumns = useMemo(
-      () =>
-        puzzle.columnClues.map((_, i) =>
-          lineComplete(puzzle, state, "column", i),
-        ),
-      [puzzle, state],
-    );
+    rowStatuses=useMemo(()=>puzzle.rowClues.map((_,line)=>lineStatus(puzzle,state,"row",line)),[puzzle,state]),
+    columnStatuses=useMemo(()=>puzzle.columnClues.map((_,line)=>lineStatus(puzzle,state,"column",line)),[puzzle,state]),
+    selectedRow=state.selected===null?null:Math.floor(state.selected/puzzle.width),
+    selectedColumn=state.selected===null?null:state.selected%puzzle.width;
   stateRef.current = state;
   useEffect(() => {
     loadNonogramSession(puzzle)
@@ -67,6 +67,7 @@ export function NonogramGame({
         setPhase("play");
       });
   }, [puzzle]);
+  useEffect(()=>saveAssistSettings("nonogram",assistSettings),[assistSettings]);
   useEffect(() => {
     if (phase !== "play") return;
     if (complete || !hasProgress(state)) deleteNonogramSession(puzzle.id);
@@ -258,7 +259,7 @@ export function NonogramGame({
             {puzzle.columnClues.map((clues, index) => (
               <div
                 key={index}
-                className={completedColumns[index] ? "complete" : ""}
+                className={`${assistSettings.lineStatus&&columnStatuses[index]==="complete" ? "complete" : ""} ${assistSettings.lineFocus&&selectedColumn===index?"focused":""} ${assistSettings.lineStatus?columnStatuses[index]:""}`}
               >
                 {clues.length ? (
                   clues.map((v, i) => <span key={i}>{v}</span>)
@@ -272,7 +273,7 @@ export function NonogramGame({
             {puzzle.rowClues.map((clues, index) => (
               <div
                 key={index}
-                className={completedRows[index] ? "complete" : ""}
+                className={`${assistSettings.lineStatus&&rowStatuses[index]==="complete" ? "complete" : ""} ${assistSettings.lineFocus&&selectedRow===index?"focused":""} ${assistSettings.lineStatus?rowStatuses[index]:""}`}
               >
                 {clues.length ? clues.join(" ") : "0"}
               </div>
@@ -295,6 +296,8 @@ export function NonogramGame({
                 role="gridcell"
                 aria-label={`${Math.floor(index / puzzle.width) + 1}行${(index % puzzle.width) + 1}列 ${cell === 1 ? "塗り" : cell === 2 ? "空き" : "未確定"}`}
                 className={`${cell === 1 ? "filled" : cell === 2 ? "marked" : ""} ${state.hinted.includes(index) ? "hinted" : ""} ${state.selected === index ? "selected" : ""}`}
+                data-line-focus={assistSettings.lineFocus&&(Math.floor(index/puzzle.width)===selectedRow||index%puzzle.width===selectedColumn)?"true":undefined}
+                data-logical={logicalHint?.index===index?"target":logicalHint&&(logicalHint.kind==="row"?Math.floor(index/puzzle.width)===logicalHint.line:index%puzzle.width===logicalHint.line)?"scope":undefined}
                 onPointerDown={(event) => begin(index, event)}
                 onPointerEnter={() => enter(index)}
               >
@@ -303,11 +306,25 @@ export function NonogramGame({
             ))}
           </div>
         </div>
-        <p className="operation-help">
-          ドラッグ: 選択中の入力　／　PCの右クリック・右ドラッグ:
-          ×　／　水平・垂直の1ストロークを一手として記録
-        </p>
+        <MessagePanel message={complete?`完成しました！（ヒント使用 ${state.hintCount}回）`:message}/>
+        <div className="assist-settings">
+          <button className="button secondary" onClick={()=>setSettingsOpen(open=>!open)}>補助設定{settingsOpen?"を閉じる":"を開く"}</button>
+          {settingsOpen&&<div className="assist-settings-panel">
+            <label><input type="checkbox" checked={assistSettings.lineFocus} onChange={event=>setAssistSettings({...assistSettings,lineFocus:event.target.checked})}/> 選択行・列を強調</label>
+            <label><input type="checkbox" checked={assistSettings.lineStatus} onChange={event=>setAssistSettings({...assistSettings,lineStatus:event.target.checked})}/> 行・列の完了／矛盾を表示</label>
+            <p>ドラッグ: 選択中の入力／PCの右クリック・右ドラッグ: ×／水平・垂直の1ストロークを一手として記録</p>
+          </div>}
+        </div>
+        <h2 className="action-heading">ヒント</h2>
         <div className="actions">
+          <button className="button hint" disabled={complete} onClick={()=>{
+            if(hasLineContradiction(puzzle,state)){setMessage("現在の入力と両立しない行または列があります。");return}
+            const found=findNonogramLogicalHint(puzzle,state);
+            if(!found){setMessage("基本的な確定マスは見つかりませんでした。");return}
+            setLogicalHint(found);
+            setState(current=>({...current,selected:found.index,logicalHintSignature:found.signature,hintCount:current.logicalHintSignature===found.signature?current.hintCount:current.hintCount+1}));
+            setMessage(`この${found.kind==="row"?"行":"列"}のすべての成立パターンで、このマスは${found.value===1?"塗られます":"空白になります"}。`);
+          }}>確定マスを探す</button>
           <button
             className="button hint"
             disabled={complete}
@@ -323,13 +340,6 @@ export function NonogramGame({
             ランダムに1マス開示
           </button>
         </div>
-        <MessagePanel
-          message={
-            complete
-              ? `完成しました！（ヒント使用 ${state.hintCount}回）`
-              : message
-          }
-        />
         <GameFooter
           onBack={onBack}
           onLauncher={onLauncher}

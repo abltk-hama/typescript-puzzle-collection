@@ -4,6 +4,10 @@ import {
   cluesForSolution,
   initialNonogram,
   isComplete,
+  compatibleLinePatterns,
+  findNonogramLogicalHint,
+  hasLineContradiction,
+  lineStatus,
   revealCell,
   undoStroke,
   type NonogramPuzzle,
@@ -49,5 +53,17 @@ describe("Nonogram domain", () => {
     expect(isComplete(puzzle, { ...initialNonogram(puzzle), cells })).toBe(
       true,
     );
+  });
+  it("finds a deterministic cell shared by every compatible line pattern", () => {
+    const state = initialNonogram(puzzle), hint = findNonogramLogicalHint(puzzle, state);
+    expect(hint).toMatchObject({ index: 5, value: 1, kind: "row", line: 1 });
+    expect(compatibleLinePatterns(puzzle, state, "row", 1)).toHaveLength(1);
+  });
+  it("detects complete and contradictory lines without the answer", () => {
+    const completeRow = applyStroke(puzzle, initialNonogram(puzzle), [5, 6, 7, 8, 9], 1);
+    expect(lineStatus(puzzle, completeRow, "row", 1)).toBe("complete");
+    const contradiction = applyStroke(puzzle, initialNonogram(puzzle), [0, 1], 1);
+    expect(lineStatus(puzzle, contradiction, "row", 0)).toBe("contradiction");
+    expect(hasLineContradiction(puzzle, contradiction)).toBe(true);
   });
 });
