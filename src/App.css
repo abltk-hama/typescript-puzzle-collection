@@ -1433,3 +1433,192 @@ select {
     flex: 1 1 42%;
   }
 }
+.code-slot {
+  position: relative;
+}
+.code-slot small {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 1px;
+  font-size: 0.58rem;
+}
+.code-slot.pin-difference {
+  outline: 4px dashed #c2410c;
+  outline-offset: -5px;
+}
+.pin-difference-summary {
+  margin: -4px 0 10px;
+  color: #9a3412;
+  font-weight: 800;
+  text-align: center;
+}
+.mastermind-input.inconsistent {
+  padding: 7px;
+  border-radius: 12px;
+  outline: 4px solid #dc2626;
+}
+.mastermind-palette button {
+  position: relative;
+}
+.mastermind-palette button small {
+  position: absolute;
+  right: 3px;
+  top: 1px;
+  font-weight: 900;
+}
+.mastermind-palette button.excluded {
+  filter: grayscale(1);
+  opacity: 0.42;
+}
+.mastermind-palette button.likely {
+  outline: 4px solid #16a34a;
+}
+.mastermind-palette button.unlikely {
+  outline: 4px solid #dc2626;
+}
+.mastermind-organizer,
+.mastermind-history-groups {
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid #cbd8e1;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.mastermind-organizer h2,
+.mastermind-history-groups h2 {
+  margin: 0 0 10px;
+}
+.organization-levels .button {
+  min-width: 72px;
+}
+.color-summary {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.color-summary > span,
+.attention-grid section > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.mastermind-dot {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid #475569;
+  border-radius: 50%;
+  color: #111827;
+  font-style: normal;
+  font-weight: 900;
+  text-shadow: 0 1px #fff;
+}
+.mastermind-dot b {
+  position: absolute;
+  right: -6px;
+  top: -8px;
+  padding: 0 3px;
+  border-radius: 5px;
+  background: #fff;
+  color: #991b1b;
+  text-shadow: none;
+}
+.comparison-list {
+  display: grid;
+  gap: 8px;
+}
+.comparison-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #94a3b8;
+  border-radius: 9px;
+  background: #fff;
+  color: #172033;
+  text-align: left;
+}
+.attention-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.attention-grid section {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+}
+.attention-grid > p {
+  grid-column: 1/-1;
+}
+.logical-analysis {
+  margin-top: 12px;
+  padding: 12px;
+  border-left: 5px solid #7c3aed;
+  background: #f5f3ff;
+}
+.mastermind-history-groups details {
+  margin: 8px 0;
+}
+.mastermind-history-groups summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+.history-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 8px;
+}
+.mastermind-history-card {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #fff;
+}
+.mastermind-history-card.pinned {
+  outline: 4px solid #38bdf8;
+}
+.mastermind-history-card.history-conflict {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+.mastermind-history-card header {
+  display: flex;
+  justify-content: space-between;
+}
+.mastermind-history-card .history-code {
+  margin: 8px 0;
+}
+.mastermind-history-card .actions .button {
+  padding: 7px 9px;
+  font-size: 0.8rem;
+}
+@media (max-width: 650px) {
+  .attention-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .history-card-grid {
+    grid-template-columns: 1fr;
+  }
+  .comparison-card {
+    grid-template-columns: 1fr;
+  }
+  .organization-levels > .button {
+    flex: 1 1 28%;
+  }
+  .mastermind-organizer,
+  .mastermind-history-groups {
+    padding: 10px;
+  }
+}
