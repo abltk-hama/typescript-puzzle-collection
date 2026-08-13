@@ -1313,3 +1313,123 @@ select {
 .macro-controls > .actions {
   margin: 8px 0;
 }
+.maze-maps {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(320px, 1.15fr);
+  gap: 18px;
+  align-items: start;
+}
+.maze-map-pane {
+  min-width: 0;
+}
+.maze-map-pane h2 {
+  margin: 4px 0 8px;
+  font-size: 1rem;
+  text-align: center;
+}
+.maze-map-pane .maze-board {
+  width: 100%;
+  max-width: none;
+}
+.maze-board.overview {
+  --wall: 1.5px solid #0f172a;
+}
+.maze-board.detail {
+  --wall: 3px solid #0f172a;
+}
+.maze-cell.auto-path::after,
+.maze-cell.preview-path::after {
+  content: "";
+  position: absolute;
+  inset: 42%;
+  border-radius: 50%;
+  background: #dc2626;
+}
+.maze-cell.auto-path::after {
+  box-shadow: 0 0 0 1px #fff;
+}
+.maze-cell.preview-path::after {
+  background: #f59e0b;
+  opacity: 0.55;
+}
+.maze-cell.next-decision {
+  background: #fee2e2;
+}
+.maze-cell.preview-decision {
+  background: #ffedd5;
+}
+.maze-pointer,
+.maze-preview-player {
+  position: absolute;
+  inset: 18%;
+  display: grid;
+  place-items: center;
+  color: #dc2626;
+  font-size: clamp(0.45rem, 1.2vw, 0.85rem);
+  z-index: 3;
+}
+.maze-preview-player {
+  color: #f59e0b;
+  opacity: 0.65;
+}
+.maze-direction-marker {
+  text-align: center;
+  color: #9f1239;
+  font-weight: 800;
+}
+.maze-view-tabs {
+  justify-content: center;
+}
+.maze-branch-controls,
+.maze-return {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid #cbd8e1;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+.maze-branch-controls h2,
+.maze-return h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+.maze-cell {
+  min-width: 0;
+}
+.maze-board.overview .endpoint {
+  font-size: clamp(4px, 0.7vw, 9px);
+}
+@media (min-width: 651px) {
+  .maze-view-tabs {
+    display: none;
+  }
+  .maze-map-pane {
+    display: block !important;
+  }
+}
+@media (max-width: 650px) {
+  .maze-maps {
+    display: block;
+  }
+  .maze-map-pane {
+    display: none;
+  }
+  .maze-map-pane.active {
+    display: block;
+  }
+  .maze-map-pane .maze-board {
+    width: min(100%, calc(100svh - 300px));
+    min-width: 270px;
+    margin: auto;
+  }
+  .maze-board.overview {
+    aspect-ratio: 1;
+  }
+  .maze-board.detail {
+    aspect-ratio: 1;
+  }
+  .maze-branch-controls .actions > .button,
+  .maze-return .actions > .button {
+    flex: 1 1 42%;
+  }
+}
