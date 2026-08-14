@@ -28,6 +28,10 @@ import { loadBundledPuzzles as loadSkyscraper } from "../games/skyscraper/data/p
 import type { SkyscraperPuzzle } from "../games/skyscraper/domain/skyscraper";
 import { SkyscraperGame } from "../games/skyscraper/ui/SkyscraperGame";
 import { SkyscraperSetup } from "../games/skyscraper/ui/SkyscraperSetup";
+import { loadBundledPuzzles as loadKakuro } from "../games/kakuro/data/puzzles";
+import type { KakuroPuzzle } from "../games/kakuro/domain/kakuro";
+import { KakuroGame } from "../games/kakuro/ui/KakuroGame";
+import { KakuroSetup } from "../games/kakuro/ui/KakuroSetup";
 
 export type GameId =
   | "lights_out"
@@ -36,7 +40,8 @@ export type GameId =
   | "maze"
   | "sudoku"
   | "nonogram"
-  | "skyscraper";
+  | "skyscraper"
+  | "kakuro";
 export interface GameRegistration {
   id: GameId;
   displayName: string;
@@ -140,6 +145,16 @@ export const gameCatalog: readonly GameRegistration[] = [
     loadPuzzles: loadSkyscraper,
     Setup: SkyscraperSetup,
     Game: SkyscraperGame,
+  }),
+  register<KakuroPuzzle>({
+    id: "kakuro",
+    displayName: "カックロ",
+    description: "交差する合計から数字を推理しよう",
+    icon: "＋",
+    cardClass: "kakuro-card",
+    loadPuzzles: loadKakuro,
+    Setup: KakuroSetup,
+    Game: KakuroGame,
   }),
 ];
 export function findGame(id: GameId | null) {
