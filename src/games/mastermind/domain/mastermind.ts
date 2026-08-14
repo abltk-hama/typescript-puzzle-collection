@@ -26,6 +26,7 @@ export interface MastermindState {
   colorNotes: Record<number, ColorMemoStatus>;
   pinnedGuesses: number[];
   guessNotes: Record<number, string>;
+  memoHintSignatures: string[];
 }
 export function scoreGuess(
   secret: number[],
@@ -57,6 +58,7 @@ export const initialGame = (puzzle: MastermindPuzzle): MastermindState => ({
   colorNotes: {},
   pinnedGuesses: [],
   guessNotes: {},
+  memoHintSignatures: [],
 });
 export const isWon = (puzzle: MastermindPuzzle, state: MastermindState) =>
   state.guesses.at(-1)?.exact === puzzle.codeLength;
@@ -450,6 +452,75 @@ export function logicalAnalysis(
     });
   return { candidates, positionColors, counts };
 }
+export function selectedLogicalAnalysis(
+  puzzle: MastermindPuzzle,
+  state: MastermindState,
+  selected: number[],
+) {
+  const selectedSet = new Set(selected),
+    subset = {
+      ...state,
+      guesses: state.guesses.filter((_, index) => selectedSet.has(index)),
+    };
+  return logicalAnalysis(puzzle, subset);
+}
+export function addGuessColorsToNotes(
+  puzzle: MastermindPuzzle,
+  state: MastermindState,
+  guessIndex: number,
+) {
+  const guess = state.guesses[guessIndex];
+  if (!guess) return state;
+  const colors = [...new Set(guess.code)].filter(
+    (color) => color >= 1 && color <= puzzle.symbolCount,
+  );
+  return {
+    ...state,
+    positionNotes: state.positionNotes.map((notes) =>
+      [...new Set([...notes, ...colors])].sort(),
+    ),
+  };
+}
+export function organizeNotesFromSelection(
+  puzzle: MastermindPuzzle,
+  state: MastermindState,
+  selected: number[],
+) {
+  const analysis = selectedLogicalAnalysis(puzzle, state, selected);
+  let removed = 0;
+  const positionNotes = state.positionNotes.map((notes, index) => {
+    const allowed = new Set(analysis.positionColors[index]),
+      next = notes.filter((color) => allowed.has(color));
+    removed += notes.length - next.length;
+    return next;
+  });
+  return {
+    analysis,
+    removed,
+    state: removed ? { ...state, positionNotes } : state,
+  };
+}
+export function replaceNotesFromSelection(
+  puzzle: MastermindPuzzle,
+  state: MastermindState,
+  selected: number[],
+) {
+  const analysis = selectedLogicalAnalysis(puzzle, state, selected),
+    signature = `${state.guesses.length}:${Object.keys(state.revealed).length}:${[...selected].sort().join(",")}:${analysis.candidates.map((code) => code.join("")).join("|")}`,
+    counted = !state.memoHintSignatures.includes(signature);
+  return {
+    analysis,
+    counted,
+    state: {
+      ...state,
+      positionNotes: analysis.positionColors.map((colors) => [...colors]),
+      hintCount: state.hintCount + (counted ? 1 : 0),
+      memoHintSignatures: counted
+        ? [...state.memoHintSignatures, signature]
+        : state.memoHintSignatures,
+    },
+  };
+}
 export function cleanPositionNotes(
   puzzle: MastermindPuzzle,
   state: MastermindState,
@@ -479,6 +550,9 @@ export function restore(puzzle: MastermindPuzzle, state: MastermindState) {
           .slice(0, 2)
       : [],
     guessNotes: state.guessNotes ?? {},
+    memoHintSignatures: Array.isArray(state.memoHintSignatures)
+      ? state.memoHintSignatures
+      : [],
   };
   if (
     migrated.current.length !== puzzle.codeLength ||

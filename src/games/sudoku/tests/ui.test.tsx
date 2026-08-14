@@ -130,3 +130,21 @@ it("creates and restores a hypothesis checkpoint", async () => {
   expect(screen.getByRole("gridcell", { name: "1行3列" })).toBeInTheDocument();
   expect(screen.getByText(/仮説チェックポイント: 0\/3/)).toBeInTheDocument();
 });
+it("reviews a near-complete row through the keypad without entering a digit", async () => {
+  const almostComplete: SudokuPuzzle = {
+    ...puzzle,
+    id: "sudoku-ui-unit-review",
+    givens: solution.map((value, index) => (index === 8 ? 0 : value)),
+  };
+  const { user, view } = await renderGame(almostComplete);
+  expect(view.container.querySelector(".review-ready-row")).not.toBeNull();
+  await user.click(screen.getByRole("button", { name: "行・列確認 OFF" }));
+  expect(screen.getByText(/空欄 1／未使用 2/)).toBeInTheDocument();
+  const two = screen.getByRole("button", { name: "数字 2" });
+  expect(two).toHaveClass("review-unused");
+  await user.click(two);
+  expect(screen.getByRole("gridcell", { name: "1行9列" })).toHaveTextContent(
+    "",
+  );
+  expect(screen.getByText(/参照表示/)).toBeInTheDocument();
+});

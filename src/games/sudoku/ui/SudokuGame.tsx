@@ -28,6 +28,8 @@ import {
   restoreCheckpoint,
   acceptCheckpoint,
   cleanIncorrectEntries,
+  reviewableUnits,
+  unitReview,
 } from "../domain/sudoku";
 import {
   deleteSudokuSession,
@@ -41,9 +43,11 @@ import {
 type Phase = "loading" | "ask" | "play";
 interface SudokuAssistSettings {
   nearCompleteHighlight: boolean;
+  rowColumnReview: boolean;
 }
 const sudokuAssistDefaults: SudokuAssistSettings = {
   nearCompleteHighlight: true,
+  rowColumnReview: true,
 };
 export function SudokuGame({
   puzzle,
@@ -60,6 +64,8 @@ export function SudokuGame({
     [focusMode, setFocusMode] = useState(false),
     [focusedDigit, setFocusedDigit] = useState<number | null>(null),
     [logicalHint, setLogicalHint] = useState<LogicalHint | null>(null),
+    [reviewMode, setReviewMode] = useState<"row" | "column" | null>(null),
+    [reviewIndex, setReviewIndex] = useState(0),
     [assistSettings, setAssistSettings] = useState(() =>
       loadAssistSettings("sudoku", sudokuAssistDefaults),
     ),
@@ -91,6 +97,19 @@ export function SudokuGame({
     hintScope = useMemo(
       () => new Set(logicalHint ? logicalHintScope(logicalHint) : []),
       [logicalHint],
+    ),
+    activeReview = useMemo(
+      () =>
+        reviewMode ? unitReview(state.values, reviewMode, reviewIndex) : null,
+      [reviewMode, reviewIndex, state.values],
+    ),
+    reviewableRows = useMemo(
+      () => reviewableUnits(state.values, "row"),
+      [state.values],
+    ),
+    reviewableColumns = useMemo(
+      () => reviewableUnits(state.values, "column"),
+      [state.values],
     );
   const nearUnits = useMemo(
       () => nearCompleteUnits(state.values),
@@ -153,6 +172,10 @@ export function SudokuGame({
               .filter(Boolean),
           );
   function applyNumber(value: number) {
+    if (reviewMode) {
+      setMessage("行・列確認中はキーパッドを参照表示として使用します。");
+      return;
+    }
     const next = enterNumber(puzzle, state, value);
     setState(next);
     if (next !== state) setLogicalHint(null);
@@ -164,12 +187,26 @@ export function SudokuGame({
       );
   }
   function clear() {
+    if (reviewMode) {
+      setMessage("行・列確認中は盤面を変更できません。");
+      return;
+    }
     const next = clearCell(puzzle, state);
     setState(next);
     if (next !== state) setLogicalHint(null);
     if (next !== state) setMessage("選択マスを消去しました。");
   }
   function selectBoardCell(index: number, value: number) {
+    if (reviewMode) {
+      const nextIndex =
+        reviewMode === "row" ? Math.floor(index / 9) : index % 9;
+      setReviewIndex(nextIndex);
+      const review = unitReview(state.values, reviewMode, nextIndex);
+      setMessage(
+        `${reviewMode === "row" ? "行" : "列"}${nextIndex + 1}：空欄${review.emptyCount}、未使用 ${review.unused.join("・") || "なし"}${review.duplicates.length ? `（重複 ${review.duplicates.join("・")}）` : ""}`,
+      );
+      return;
+    }
     setState(selectCell(state, index));
     if (focusMode && value) {
       setFocusedDigit(value);
@@ -209,6 +246,14 @@ export function SudokuGame({
     }
   }
   function keyDown(event: React.KeyboardEvent) {
+    if (
+      reviewMode &&
+      (/^[1-9]$/.test(event.key) ||
+        ["Delete", "Backspace", "0", "n"].includes(event.key))
+    ) {
+      event.preventDefault();
+      return;
+    }
     if (/^[1-9]$/.test(event.key)) {
       event.preventDefault();
       applyNumber(Number(event.key));
@@ -297,9 +342,12 @@ export function SudokuGame({
               <button
                 key={value}
                 aria-label={`数字 ${value}`}
-                className={selectedValue === value ? "active" : ""}
+                className={`${selectedValue === value ? "active" : ""} ${activeReview?.unused.includes(value) ? "review-unused" : ""} ${activeReview?.duplicates.includes(value) ? "review-duplicate" : ""}`}
                 disabled={
-                  complete || (state.inputMode === "value" && used.has(value))
+                  complete ||
+                  (!reviewMode &&
+                    state.inputMode === "value" &&
+                    used.has(value))
                 }
                 onClick={() => applyNumber(value)}
               >
@@ -307,11 +355,16 @@ export function SudokuGame({
                 <small>{digitCounts[value - 1]}/9</small>
               </button>
             ))}
-            <button className="wide" onClick={clear}>
+            <button
+              className="wide"
+              disabled={Boolean(reviewMode)}
+              onClick={clear}
+            >
               消去
             </button>
             <button
               className={`wide ${state.inputMode === "note" ? "active" : ""}`}
+              disabled={Boolean(reviewMode)}
               onClick={() =>
                 setState(
                   setMode(state, state.inputMode === "note" ? "value" : "note"),
@@ -320,6 +373,35 @@ export function SudokuGame({
             >
               メモ {state.inputMode === "note" ? "ON" : "OFF"}
             </button>
+            {assistSettings.rowColumnReview && (
+              <button
+                className={`wide ${reviewMode ? "active" : ""}`}
+                onClick={() => {
+                  if (reviewMode) {
+                    const review = activeReview!;
+                    setReviewMode(null);
+                    setMessage(
+                      `直前の確認：${review.kind === "row" ? "行" : "列"}${review.unitIndex + 1}の未使用数字 ${review.unused.join("・") || "なし"}。3×3ブロックを確認してください。`,
+                    );
+                  } else {
+                    const first = reviewableRows[0] ?? reviewableColumns[0];
+                    if (!first) {
+                      setMessage(
+                        "空欄3マス以下の行・列はまだありません。橙色の印が出てから確認できます。",
+                      );
+                      return;
+                    }
+                    setReviewMode(first.kind);
+                    setReviewIndex(first.unitIndex);
+                    setMessage(
+                      `${first.kind === "row" ? "行" : "列"}確認を開始しました。盤面を選ぶか、前後ボタンで巡回できます。`,
+                    );
+                  }
+                }}
+              >
+                行・列確認 {reviewMode ? "ON" : "OFF"}
+              </button>
+            )}
           </div>
           <div
             className="sudoku-board"
@@ -341,7 +423,7 @@ export function SudokuGame({
                   key={index}
                   role="gridcell"
                   aria-label={`${Math.floor(index / 9) + 1}行${(index % 9) + 1}列${value ? ` ${value}` : ""}`}
-                  className={`${fixed ? "fixed" : ""} ${state.hinted.includes(index) ? "hinted" : ""} ${state.selected === index ? "selected" : ""} ${related ? "related" : ""} ${same ? "same" : ""} ${conflicting.has(index) ? "conflict" : ""}`}
+                  className={`${fixed ? "fixed" : ""} ${state.hinted.includes(index) ? "hinted" : ""} ${state.selected === index ? "selected" : ""} ${related ? "related" : ""} ${same ? "same" : ""} ${conflicting.has(index) ? "conflict" : ""} ${assistSettings.rowColumnReview && index % 9 === 8 && reviewableRows.some((unit) => unit.unitIndex === Math.floor(index / 9)) ? "review-ready-row" : ""} ${assistSettings.rowColumnReview && Math.floor(index / 9) === 8 && reviewableColumns.some((unit) => unit.unitIndex === index % 9) ? "review-ready-column" : ""}`}
                   data-focus={
                     focusedDigit !== null && value === focusedDigit
                       ? "digit"
@@ -367,6 +449,9 @@ export function SudokuGame({
                             ? "unit"
                             : undefined
                   }
+                  data-review={
+                    activeReview?.cells.includes(index) ? "active" : undefined
+                  }
                   onClick={() => selectBoardCell(index, value)}
                   onContextMenu={(event) => {
                     event.preventDefault();
@@ -387,6 +472,75 @@ export function SudokuGame({
             })}
           </div>
         </div>
+        {reviewMode && activeReview && (
+          <div className="sudoku-unit-review">
+            <div className="actions">
+              <button
+                className="button secondary"
+                onClick={() => {
+                  const next = reviewMode === "row" ? "column" : "row";
+                  const available =
+                    next === "row" ? reviewableRows : reviewableColumns;
+                  if (!available.length) {
+                    setMessage(
+                      `空欄3マス以下の${next === "row" ? "行" : "列"}はありません。`,
+                    );
+                    return;
+                  }
+                  setReviewMode(next);
+                  setReviewIndex(available[0].unitIndex);
+                }}
+              >
+                {reviewMode === "row" ? "列確認へ" : "行確認へ"}
+              </button>
+              <button
+                className="button secondary"
+                onClick={() => {
+                  const available =
+                    reviewMode === "row" ? reviewableRows : reviewableColumns;
+                  const position = available.findIndex(
+                    (unit) => unit.unitIndex === reviewIndex,
+                  );
+                  const next =
+                    available[
+                      (position - 1 + available.length) % available.length
+                    ];
+                  if (next) setReviewIndex(next.unitIndex);
+                }}
+              >
+                前へ
+              </button>
+              <strong>
+                {reviewMode === "row" ? "行" : "列"}
+                {reviewIndex + 1}
+              </strong>
+              <button
+                className="button secondary"
+                onClick={() => {
+                  const available =
+                    reviewMode === "row" ? reviewableRows : reviewableColumns;
+                  const position = available.findIndex(
+                    (unit) => unit.unitIndex === reviewIndex,
+                  );
+                  const next = available[(position + 1) % available.length];
+                  if (next) setReviewIndex(next.unitIndex);
+                }}
+              >
+                次へ
+              </button>
+            </div>
+            <p>
+              空欄 {activeReview.emptyCount}／未使用{" "}
+              {activeReview.unused.join("・") || "なし"}
+              {activeReview.duplicates.length
+                ? `／重複 ${activeReview.duplicates.join("・")}`
+                : ""}
+            </p>
+            <p>
+              キーパッドの明るい数字を確認し、3×3ブロックは盤面から判断してください。
+            </p>
+          </div>
+        )}
         <MessagePanel
           message={
             complete
@@ -486,6 +640,20 @@ export function SudokuGame({
                   }
                 />{" "}
                 完成直前単位を強調
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={assistSettings.rowColumnReview}
+                  onChange={(event) => {
+                    setAssistSettings({
+                      ...assistSettings,
+                      rowColumnReview: event.target.checked,
+                    });
+                    if (!event.target.checked) setReviewMode(null);
+                  }}
+                />{" "}
+                行・列確認モード
               </label>
               <p>
                 数字フォーカスON時のみ、完成直前マスの不足数字を自動フォーカスします。

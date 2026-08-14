@@ -9,9 +9,9 @@ import {
 } from "../../../common/storage/gameAssistSettings";
 import {
   attentionGroups,
+  addGuessColorsToNotes,
   candidateCount,
   classifyGuess,
-  cleanPositionNotes,
   clearSelected,
   copyGuess,
   cycleColorNote,
@@ -22,8 +22,9 @@ import {
   isFinished,
   isLost,
   isWon,
-  levelOneColors,
   logicalAnalysis,
+  organizeNotesFromSelection,
+  replaceNotesFromSelection,
   revealPosition,
   selectPosition,
   setGuessNote,
@@ -96,6 +97,10 @@ export function MastermindGame({
     ),
     [settingsOpen, setSettingsOpen] = useState(false),
     [memoMode, setMemoMode] = useState(false),
+    [selectedHistories, setSelectedHistories] = useState<number[]>([]),
+    [selectionResult, setSelectionResult] = useState<ReturnType<
+      typeof logicalAnalysis
+    > | null>(null),
     [logicResult, setLogicResult] = useState<ReturnType<
       typeof logicalAnalysis
     > | null>(null),
@@ -104,7 +109,6 @@ export function MastermindGame({
     finished = isFinished(puzzle, state),
     consistency = inputConsistency(state),
     excluded = excludedColors(state),
-    level1 = levelOneColors(state),
     comparisons = guessComparisons(state),
     attention = attentionGroups(puzzle, state),
     pinnedCodes = state.pinnedGuesses
@@ -224,6 +228,21 @@ export function MastermindGame({
       );
     }
   }
+  function toggleHistorySelection(index: number) {
+    if (selectedHistories.includes(index)) {
+      setSelectedHistories(
+        selectedHistories.filter((value) => value !== index),
+      );
+      setSelectionResult(null);
+      return;
+    }
+    if (selectedHistories.length >= 3) {
+      setMessage("整理対象にできる履歴は3件までです。");
+      return;
+    }
+    setSelectedHistories([...selectedHistories, index]);
+    setSelectionResult(null);
+  }
   if (phase === "loading")
     return (
       <main className="shell">
@@ -283,6 +302,23 @@ export function MastermindGame({
       </div>
       {state.guessNotes[index] && <p>{state.guessNotes[index]}</p>}
       <div className="actions">
+        <button
+          className={`button secondary ${selectedHistories.includes(index) ? "active" : ""}`}
+          onClick={() => toggleHistorySelection(index)}
+        >
+          {selectedHistories.includes(index) ? "整理対象から外す" : "整理対象"}
+        </button>
+        <button
+          className="button secondary"
+          onClick={() => {
+            setState(addGuessColorsToNotes(puzzle, state, index));
+            setMessage(
+              `${index + 1}手目の色を全位置の候補メモへ追加しました。`,
+            );
+          }}
+        >
+          色をメモへ追加
+        </button>
         <button
           className="button secondary"
           onClick={() => setState(togglePin(state, index))}
@@ -431,22 +467,6 @@ export function MastermindGame({
             <p>整理表示なし。履歴を時系列で確認します。</p>
           )}
           {settings.organizationLevel >= 1 && (
-            <div className="color-summary">
-              <strong>検討色</strong>
-              {[...level1.references].map(([color, indices]) => (
-                <span key={color}>
-                  <ColorDot value={color} mark="○" />{" "}
-                  {indices.map((i) => i + 1).join("・")}手
-                </span>
-              ))}
-              {[...level1.excluded].map((color) => (
-                <span key={`x${color}`}>
-                  <ColorDot value={color} mark="×" /> 除外
-                </span>
-              ))}
-            </div>
-          )}
-          {settings.organizationLevel >= 2 && (
             <div className="comparison-list">
               <h3>2位置以内の履歴比較</h3>
               {comparisons.length ? (
@@ -482,7 +502,7 @@ export function MastermindGame({
               )}
             </div>
           )}
-          {settings.organizationLevel >= 3 && (
+          {settings.organizationLevel >= 2 && (
             <div className="attention-grid">
               {attention.positions.map((group, index) => (
                 <section key={index}>
@@ -500,18 +520,40 @@ export function MastermindGame({
                   ))}
                 </section>
               ))}
-              <section>
-                <strong>位置未確定</strong>
-                {[...attention.unplaced].map(([color, data]) => (
-                  <span key={color}>
-                    <ColorDot value={color} mark="○" />
-                    <small>
-                      {data.evidence.map((i) => i + 1).join("・")}手
-                    </small>
-                  </span>
-                ))}
-              </section>
               <p>○・◎は注目候補であり、確定情報ではありません。</p>
+            </div>
+          )}
+          {settings.organizationLevel === 3 && (
+            <div className="logical-analysis">
+              <strong>選択履歴による段階整理</strong>
+              <p>
+                判定別履歴から最大3件を整理対象にし、重要な履歴の組み合わせを試します。
+              </p>
+              <p>
+                選択中:{" "}
+                {selectedHistories.length
+                  ? selectedHistories
+                      .map((index) => `${index + 1}手目`)
+                      .join("・")
+                  : "なし"}
+              </p>
+              {selectionResult && (
+                <>
+                  <p>整合候補: {selectionResult.candidates.length}通り</p>
+                  {selectionResult.candidates.length === 1 ? (
+                    <p>
+                      この履歴の組み合わせで一意になります。全位置の色は「論理候補で置き換える」で確認できます。
+                    </p>
+                  ) : (
+                    selectionResult.positionColors.map((values, index) => (
+                      <p key={index}>
+                        位置 {index + 1}: {values.join("・")}
+                        {values.length === 1 ? " ✓" : ""}
+                      </p>
+                    ))
+                  )}
+                </>
+              )}
             </div>
           )}
           {settings.organizationLevel === 4 && logicResult && (
@@ -555,22 +597,60 @@ export function MastermindGame({
         <div className="actions">
           <button
             className="button secondary"
-            disabled={!state.positionNotes.some((notes) => notes.length)}
+            disabled={
+              !selectedHistories.length ||
+              !state.positionNotes.some((notes) => notes.length)
+            }
             onClick={() => {
-              const result = cleanPositionNotes(puzzle, state);
+              const result = organizeNotesFromSelection(
+                puzzle,
+                state,
+                selectedHistories,
+              );
+              setSelectionResult(result.analysis);
               if (
                 result.removed &&
                 confirm(
-                  `論理上不可能な候補メモを${result.removed}件削除しますか？`,
+                  `選択履歴から不可能な候補メモを${result.removed}件削除しますか？`,
                 )
               ) {
                 setState(result.state);
                 setMessage(`${result.removed}件の候補メモを整理しました。`);
               } else if (!result.removed)
-                setMessage("削除できる候補メモはありません。");
+                setMessage("選択履歴から削除できる候補メモはありません。");
             }}
           >
-            候補メモを整理
+            選択履歴からメモ整理
+          </button>
+          <button
+            className="button hint"
+            disabled={!selectedHistories.length}
+            onClick={() => {
+              const preview = organizeNotesFromSelection(
+                puzzle,
+                state,
+                selectedHistories,
+              ).analysis;
+              const unique = preview.candidates.length === 1;
+              if (
+                !confirm(
+                  `選択履歴の論理候補でメモを置き換えます。${unique ? "正解が一意になるため、全位置の色が表示されます。" : "手動で外した候補が復元される場合があります。"}ヒントを1回使用します。続けますか？`,
+                )
+              )
+                return;
+              const result = replaceNotesFromSelection(
+                puzzle,
+                state,
+                selectedHistories,
+              );
+              setState(result.state);
+              setSelectionResult(result.analysis);
+              setMessage(
+                `論理候補でメモを置き換えました。${result.counted ? "ヒントを1回使用しました。" : "同じ解析結果のためヒント回数は増えません。"}`,
+              );
+            }}
+          >
+            論理候補で置き換える
           </button>
           <button
             className="button hint"

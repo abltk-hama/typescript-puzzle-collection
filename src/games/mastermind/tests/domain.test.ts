@@ -15,6 +15,10 @@ import {
   setSymbol,
   submitGuess,
   togglePositionNote,
+  addGuessColorsToNotes,
+  organizeNotesFromSelection,
+  replaceNotesFromSelection,
+  selectedLogicalAnalysis,
   type MastermindPuzzle,
 } from "../domain/mastermind";
 import { generateMastermind } from "../generation/generate";
@@ -87,6 +91,36 @@ describe("Mastermind domain", () => {
       [2],
       [3],
     ]);
+  });
+  it("narrows position notes from at most three selected histories", () => {
+    const state = {
+      ...initialGame(puzzle),
+      guesses: [
+        { code: [1, 2, 5, 6], exact: 1, misplaced: 1 },
+        { code: [1, 2, 3, 3], exact: 2, misplaced: 1 },
+        { code: [1, 4, 2, 3], exact: 3, misplaced: 0 },
+      ],
+    };
+    expect(
+      selectedLogicalAnalysis(puzzle, state, [1, 2]).positionColors,
+    ).toEqual([[1], [1, 5, 6], [2], [3]]);
+    const noted = addGuessColorsToNotes(puzzle, state, 0);
+    expect(noted.positionNotes[0]).toEqual([1, 2, 5, 6]);
+    const organized = organizeNotesFromSelection(puzzle, noted, [0, 1, 2]);
+    expect(organized.analysis.candidates).toEqual([[1, 1, 2, 3]]);
+    expect(organized.state.positionNotes).toEqual([[1], [1], [2], []]);
+  });
+  it("counts replacing notes once for the same selected analysis", () => {
+    const state = {
+      ...initialGame(puzzle),
+      guesses: [{ code: [1, 1, 2, 3], exact: 4, misplaced: 0 }],
+    };
+    const first = replaceNotesFromSelection(puzzle, state, [0]),
+      second = replaceNotesFromSelection(puzzle, first.state, [0]);
+    expect(first.state.positionNotes).toEqual([[1], [1], [2], [3]]);
+    expect(first.state.hintCount).toBe(1);
+    expect(second.counted).toBe(false);
+    expect(second.state.hintCount).toBe(1);
   });
   it("warns when current input contradicts a prior score", () => {
     const state = {

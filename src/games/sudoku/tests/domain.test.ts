@@ -21,6 +21,8 @@ import {
   restoreCheckpoint,
   acceptCheckpoint,
   cleanIncorrectEntries,
+  reviewableUnits,
+  unitReview,
 } from "../domain/sudoku";
 const solution = [
   ..."534678912672195348198342567859761423426853791713924856961537284287419635345286179",
@@ -134,6 +136,27 @@ describe("Sudoku domain", () => {
         (unit) => unit.kind === "row" && unit.unitIndex === 0,
       )?.valid,
     ).toBe(false);
+  });
+  it("reviews unused digits and only lists units with three or fewer blanks", () => {
+    const values = [...solution];
+    values[0] = 0;
+    values[1] = 0;
+    values[2] = 0;
+    expect(unitReview(values, "row", 0)).toMatchObject({
+      emptyCount: 3,
+      unused: [3, 4, 5],
+      duplicates: [],
+    });
+    expect(
+      reviewableUnits(values, "row").map((unit) => unit.unitIndex),
+    ).toContain(0);
+    values[3] = 0;
+    expect(
+      reviewableUnits(values, "row").map((unit) => unit.unitIndex),
+    ).not.toContain(0);
+    values[0] = 6;
+    values[4] = 6;
+    expect(unitReview(values, "row", 0).duplicates).toContain(6);
   });
   it("adds candidates to the selected cell and cleans invalid notes", () => {
     const base = selectCell(initialSudoku(puzzle), 2),

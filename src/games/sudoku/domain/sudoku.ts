@@ -22,6 +22,14 @@ export interface LogicalHint {
   signature: string;
 }
 export type UnitKind = "row" | "column" | "block";
+export interface UnitReview {
+  kind: "row" | "column";
+  unitIndex: number;
+  cells: number[];
+  emptyCount: number;
+  unused: number[];
+  duplicates: number[];
+}
 export interface NearCompleteUnit {
   kind: UnitKind;
   unitIndex: number;
@@ -167,6 +175,37 @@ export const unitCells = (kind: UnitKind, unitIndex: number) =>
           (unitIndex % 3) * 3 +
           (offset % 3),
   );
+export function unitReview(
+  values: number[],
+  kind: "row" | "column",
+  unitIndex: number,
+): UnitReview {
+  const cells = unitCells(kind, unitIndex),
+    present = cells.map((index) => values[index]).filter(Boolean),
+    counts = new Map<number, number>();
+  present.forEach((digit) => counts.set(digit, (counts.get(digit) ?? 0) + 1));
+  return {
+    kind,
+    unitIndex,
+    cells,
+    emptyCount: cells.filter((index) => values[index] === 0).length,
+    unused: Array.from({ length: 9 }, (_, index) => index + 1).filter(
+      (digit) => !counts.has(digit),
+    ),
+    duplicates: [...counts]
+      .filter(([, count]) => count > 1)
+      .map(([digit]) => digit),
+  };
+}
+export function reviewableUnits(
+  values: number[],
+  kind: "row" | "column",
+  maximumEmpty = 3,
+) {
+  return Array.from({ length: 9 }, (_, unitIndex) =>
+    unitReview(values, kind, unitIndex),
+  ).filter((unit) => unit.emptyCount > 0 && unit.emptyCount <= maximumEmpty);
+}
 export function nearCompleteUnits(values: number[]): NearCompleteUnit[] {
   const result: NearCompleteUnit[] = [];
   for (const kind of ["row", "column", "block"] as UnitKind[])
@@ -280,9 +319,7 @@ export function applyLogicalHint(state: SudokuState, hint: LogicalHint) {
 export function logicalHintScope(hint: LogicalHint) {
   if (hint.kind === "naked-single") return peers(hint.index);
   const kind = hint.kind.replace("hidden-single-", "") as
-    | "row"
-    | "column"
-    | "block";
+    "row" | "column" | "block";
   return unitCells(kind, hint.unitIndex);
 }
 export function revealHint(

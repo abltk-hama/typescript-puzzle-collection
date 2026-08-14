@@ -649,6 +649,55 @@ select {
   outline: 3px dashed #c2410c;
   outline-offset: -4px;
 }
+.sudoku-board > button[data-review="active"] {
+  background: #e0f2fe;
+  box-shadow: inset 0 0 0 3px #0284c7;
+  z-index: 3;
+}
+.sudoku-board > button {
+  position: relative;
+}
+.sudoku-board > button.review-ready-row::after,
+.sudoku-board > button.review-ready-column::before {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f97316;
+  box-shadow: 0 0 0 2px #fff;
+}
+.sudoku-board > button.review-ready-row::after {
+  right: 2px;
+  top: 2px;
+}
+.sudoku-board > button.review-ready-column::before {
+  left: 2px;
+  bottom: 2px;
+}
+.sudoku-keypad button.review-unused {
+  background: #dff5ff;
+  border-color: #0284c7;
+  color: #082f49;
+  opacity: 1;
+}
+.sudoku-keypad button.review-duplicate {
+  background: #fee2e2;
+  border-color: #dc2626;
+  color: #7f1d1d;
+  opacity: 1;
+}
+.sudoku-unit-review {
+  margin: 10px 0;
+  padding: 12px;
+  border: 1px solid #7dd3fc;
+  border-radius: 10px;
+  background: #f0f9ff;
+  text-align: center;
+}
+.sudoku-unit-review p {
+  margin: 7px 0 0;
+}
 .nonogram-modes {
   display: flex;
   justify-content: center;
