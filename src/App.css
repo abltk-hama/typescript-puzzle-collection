@@ -1616,6 +1616,42 @@ select {
   border-left: 5px solid #7c3aed;
   background: #f5f3ff;
 }
+.information-evaluation {
+  margin-top: 12px;
+  padding: 12px;
+  border-left: 5px solid #0284c7;
+  background: #f0f9ff;
+}
+.information-evaluation h3,
+.information-evaluation p {
+  margin: 7px 0;
+}
+.information-metrics {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+.information-metrics span {
+  padding: 6px 9px;
+  border: 1px solid #7dd3fc;
+  border-radius: 999px;
+  background: #fff;
+  font-weight: 800;
+}
+.information-examples {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.information-examples .button {
+  display: grid;
+  gap: 3px;
+}
+.information-examples small {
+  font-size: 0.75rem;
+}
 .mastermind-history-groups details {
   margin: 8px 0;
 }
@@ -1669,5 +1705,8 @@ select {
   .mastermind-organizer,
   .mastermind-history-groups {
     padding: 10px;
+  }
+  .information-examples {
+    grid-template-columns: 1fr;
   }
 }

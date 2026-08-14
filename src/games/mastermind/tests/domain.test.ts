@@ -19,6 +19,9 @@ import {
   organizeNotesFromSelection,
   replaceNotesFromSelection,
   selectedLogicalAnalysis,
+  evaluateInformationGuess,
+  informationGuessExamples,
+  revealInformationExamples,
   type MastermindPuzzle,
 } from "../domain/mastermind";
 import { generateMastermind } from "../generation/generate";
@@ -118,6 +121,46 @@ describe("Mastermind domain", () => {
     const first = replaceNotesFromSelection(puzzle, state, [0]),
       second = replaceNotesFromSelection(puzzle, first.state, [0]);
     expect(first.state.positionNotes).toEqual([[1], [1], [2], [3]]);
+    expect(first.state.hintCount).toBe(1);
+    expect(second.counted).toBe(false);
+    expect(second.state.hintCount).toBe(1);
+  });
+  it("evaluates a proposed guess from two selected histories", () => {
+    const state = {
+      ...initialGame(puzzle),
+      guesses: [
+        { code: [1, 2, 5, 6], exact: 0, misplaced: 3 },
+        { code: [2, 3, 5, 6], exact: 0, misplaced: 3 },
+      ],
+    };
+    const evaluation = evaluateInformationGuess(
+      puzzle,
+      state,
+      [0, 1],
+      [2, 1, 5, 6],
+    );
+    expect(evaluation).toMatchObject({
+      status: "ready",
+      rating: "very-low",
+      metrics: { outcomeCount: 2, worstRemaining: 26 },
+    });
+    expect(informationGuessExamples(puzzle, state, [0, 1], 1)[0]).toMatchObject(
+      {
+        metrics: { worstRemaining: 6 },
+      },
+    );
+  });
+  it("counts information examples once for the same history selection", () => {
+    const state = {
+      ...initialGame(puzzle),
+      guesses: [
+        { code: [1, 2, 5, 6], exact: 0, misplaced: 3 },
+        { code: [2, 3, 5, 6], exact: 0, misplaced: 3 },
+      ],
+    };
+    const first = revealInformationExamples(puzzle, state, [0, 1]),
+      second = revealInformationExamples(puzzle, first.state, [1, 0]);
+    expect(first.examples).toHaveLength(3);
     expect(first.state.hintCount).toBe(1);
     expect(second.counted).toBe(false);
     expect(second.state.hintCount).toBe(1);

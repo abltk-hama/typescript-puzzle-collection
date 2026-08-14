@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   GameFooter,
   MessagePanel,
@@ -19,12 +19,15 @@ import {
   guessComparisons,
   initialGame,
   inputConsistency,
+  evaluateInformationGuess,
+  informationGuessExamples,
   isFinished,
   isLost,
   isWon,
   logicalAnalysis,
   organizeNotesFromSelection,
   replaceNotesFromSelection,
+  revealInformationExamples,
   revealPosition,
   selectPosition,
   setGuessNote,
@@ -101,6 +104,9 @@ export function MastermindGame({
     [selectionResult, setSelectionResult] = useState<ReturnType<
       typeof logicalAnalysis
     > | null>(null),
+    [informationExamples, setInformationExamples] = useState<
+      ReturnType<typeof informationGuessExamples>
+    >([]),
     [logicResult, setLogicResult] = useState<ReturnType<
       typeof logicalAnalysis
     > | null>(null),
@@ -122,7 +128,21 @@ export function MastermindGame({
           ? index
           : -1,
       )
-      .filter((index) => index >= 0);
+      .filter((index) => index >= 0),
+    informationEvaluation = useMemo(
+      () =>
+        settings.organizationLevel === 1 &&
+        selectedHistories.length >= 2 &&
+        state.current.every((value): value is number => value !== null)
+          ? evaluateInformationGuess(
+              puzzle,
+              state,
+              selectedHistories,
+              state.current,
+            )
+          : null,
+      [puzzle, selectedHistories, settings.organizationLevel, state],
+    );
   useEffect(() => {
     loadMastermindSession(puzzle)
       .then((session) => {
@@ -161,6 +181,7 @@ export function MastermindGame({
     }
     setState(next);
     setLogicResult(null);
+    setInformationExamples([]);
     setMessage(`数字 ${value} を入力しました。`);
   }
   function submit() {
@@ -188,6 +209,7 @@ export function MastermindGame({
     }
     setState(next);
     setLogicResult(null);
+    setInformationExamples([]);
     const result = next.guesses.at(-1)!;
     if (isWon(puzzle, next))
       setMessage(
@@ -234,6 +256,7 @@ export function MastermindGame({
         selectedHistories.filter((value) => value !== index),
       );
       setSelectionResult(null);
+      setInformationExamples([]);
       return;
     }
     if (selectedHistories.length >= 3) {
@@ -242,6 +265,7 @@ export function MastermindGame({
     }
     setSelectedHistories([...selectedHistories, index]);
     setSelectionResult(null);
+    setInformationExamples([]);
   }
   if (phase === "loading")
     return (
@@ -466,7 +490,111 @@ export function MastermindGame({
           {settings.organizationLevel === 0 && (
             <p>整理表示なし。履歴を時系列で確認します。</p>
           )}
-          {settings.organizationLevel >= 1 && (
+          {settings.organizationLevel === 1 && (
+            <div className="information-evaluation">
+              <h3>次の回答の情報効率</h3>
+              <p>
+                情報源:{" "}
+                {selectedHistories.length
+                  ? selectedHistories
+                      .map((index) => `${index + 1}手目`)
+                      .join("・")
+                  : "なし"}
+              </p>
+              {selectedHistories.length < 2 ? (
+                <p>判定別履歴から2～3件を整理対象にしてください。</p>
+              ) : state.current.some((value) => value === null) ? (
+                <p>4位置を入力すると、提出前に情報効率を評価します。</p>
+              ) : informationEvaluation?.status === "inconsistent" ? (
+                <p>選択履歴同士が矛盾しているため評価できません。</p>
+              ) : informationEvaluation?.status === "solved" ? (
+                <p>
+                  選択履歴だけで候補が一意です。追加の情報収集は必要ありません。レベル3で整理できます。
+                </p>
+              ) : informationEvaluation?.status === "ready" ? (
+                <>
+                  <p>
+                    現在入力: {state.current.join("")}／評価:{" "}
+                    {informationEvaluation.rating === "high"
+                      ? "高い"
+                      : informationEvaluation.rating === "standard"
+                        ? "標準"
+                        : informationEvaluation.rating === "low"
+                          ? "低い"
+                          : "非常に低い"}
+                  </p>
+                  <div className="information-metrics">
+                    <span>
+                      判定分岐 {informationEvaluation.metrics.outcomeCount}種類
+                    </span>
+                    <span>
+                      最悪残数 {informationEvaluation.metrics.worstRemaining}
+                      通り
+                    </span>
+                    <span>
+                      平均残数{" "}
+                      {informationEvaluation.metrics.expectedRemaining.toFixed(
+                        1,
+                      )}
+                      通り
+                    </span>
+                  </div>
+                  {(informationEvaluation.rating === "low" ||
+                    informationEvaluation.rating === "very-low") && (
+                    <p>
+                      選択履歴と似た配置に判定が集中します。過去回答から変更する位置や色の並びを増やすと、情報を分けやすくなります。
+                    </p>
+                  )}
+                  <button
+                    className="button hint"
+                    onClick={() => {
+                      if (
+                        !confirm(
+                          "選択履歴を基に、情報を得やすい具体的な回答例を表示します。ヒントを1回使用します。続けますか？",
+                        )
+                      )
+                        return;
+                      const result = revealInformationExamples(
+                        puzzle,
+                        state,
+                        selectedHistories,
+                      );
+                      setState(result.state);
+                      setInformationExamples(result.examples);
+                      setMessage(
+                        `情報収集向けの回答例を表示しました。${result.counted ? "ヒントを1回使用しました。" : "同じ履歴選択のためヒント回数は増えません。"}`,
+                      );
+                    }}
+                  >
+                    情報収集に向く回答例を見る
+                  </button>
+                  {informationExamples.length > 0 && (
+                    <div className="information-examples">
+                      {informationExamples.map((example) => (
+                        <button
+                          className="button secondary"
+                          key={example.guess.join("")}
+                          onClick={() => {
+                            setState({ ...state, current: [...example.guess] });
+                            setMessage(
+                              `${example.guess.join("")}を入力欄へコピーしました。`,
+                            );
+                          }}
+                        >
+                          <strong>{example.guess.join("")}</strong>
+                          <small>
+                            最悪{example.metrics.worstRemaining}／平均
+                            {example.metrics.expectedRemaining.toFixed(1)}
+                          </small>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : null}
+            </div>
+          )}
+          {settings.organizationLevel >= 2 && (
             <div className="comparison-list">
               <h3>2位置以内の履歴比較</h3>
               {comparisons.length ? (

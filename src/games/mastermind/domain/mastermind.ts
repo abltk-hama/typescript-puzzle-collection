@@ -27,6 +27,7 @@ export interface MastermindState {
   pinnedGuesses: number[];
   guessNotes: Record<number, string>;
   memoHintSignatures: string[];
+  informationHintSignatures: string[];
 }
 export function scoreGuess(
   secret: number[],
@@ -59,6 +60,7 @@ export const initialGame = (puzzle: MastermindPuzzle): MastermindState => ({
   pinnedGuesses: [],
   guessNotes: {},
   memoHintSignatures: [],
+  informationHintSignatures: [],
 });
 export const isWon = (puzzle: MastermindPuzzle, state: MastermindState) =>
   state.guesses.at(-1)?.exact === puzzle.codeLength;
@@ -464,6 +466,114 @@ export function selectedLogicalAnalysis(
     };
   return logicalAnalysis(puzzle, subset);
 }
+export interface InformationMetrics {
+  outcomeCount: number;
+  worstRemaining: number;
+  expectedRemaining: number;
+}
+export function informationMetrics(candidates: number[][], guess: number[]) {
+  const buckets = new Map<string, number>();
+  for (const candidate of candidates) {
+    const key = scoreGuess(candidate, guess).join(":");
+    buckets.set(key, (buckets.get(key) ?? 0) + 1);
+  }
+  const sizes = [...buckets.values()],
+    total = candidates.length;
+  return {
+    outcomeCount: buckets.size,
+    worstRemaining: sizes.length ? Math.max(...sizes) : 0,
+    expectedRemaining: total
+      ? sizes.reduce((sum, size) => sum + size * size, 0) / total
+      : 0,
+  } as InformationMetrics;
+}
+export function informationGuessExamples(
+  puzzle: MastermindPuzzle,
+  state: MastermindState,
+  selected: number[],
+  limit = 3,
+) {
+  const candidates = selectedLogicalAnalysis(
+      puzzle,
+      state,
+      selected,
+    ).candidates,
+    previous = new Set(state.guesses.map((guess) => guess.code.join(":")));
+  return [...codes(puzzle)]
+    .filter(
+      (guess) =>
+        !previous.has(guess.join(":")) &&
+        Object.entries(state.revealed).every(
+          ([index, value]) => guess[Number(index)] === value,
+        ),
+    )
+    .map((guess) => ({ guess, metrics: informationMetrics(candidates, guess) }))
+    .sort(
+      (left, right) =>
+        left.metrics.worstRemaining - right.metrics.worstRemaining ||
+        left.metrics.expectedRemaining - right.metrics.expectedRemaining ||
+        right.metrics.outcomeCount - left.metrics.outcomeCount ||
+        left.guess.join("").localeCompare(right.guess.join("")),
+    )
+    .slice(0, limit);
+}
+export function evaluateInformationGuess(
+  puzzle: MastermindPuzzle,
+  state: MastermindState,
+  selected: number[],
+  guess: number[],
+) {
+  const candidates = selectedLogicalAnalysis(
+    puzzle,
+    state,
+    selected,
+  ).candidates;
+  if (!candidates.length)
+    return {
+      status: "inconsistent" as const,
+      candidates,
+      metrics: null,
+      best: null,
+    };
+  if (candidates.length === 1)
+    return { status: "solved" as const, candidates, metrics: null, best: null };
+  const metrics = informationMetrics(candidates, guess),
+    best =
+      informationGuessExamples(puzzle, state, selected, 1)[0]?.metrics ??
+      metrics,
+    ratio = best.worstRemaining
+      ? metrics.worstRemaining / best.worstRemaining
+      : 1,
+    rating =
+      ratio <= 1.25
+        ? "high"
+        : ratio <= 2
+          ? "standard"
+          : ratio <= 3
+            ? "low"
+            : "very-low";
+  return { status: "ready" as const, candidates, metrics, best, rating };
+}
+export function revealInformationExamples(
+  puzzle: MastermindPuzzle,
+  state: MastermindState,
+  selected: number[],
+) {
+  const normalized = [...selected].sort((a, b) => a - b),
+    signature = `${state.guesses.length}:${Object.keys(state.revealed).length}:${normalized.join(",")}`,
+    counted = !state.informationHintSignatures.includes(signature);
+  return {
+    examples: informationGuessExamples(puzzle, state, normalized),
+    counted,
+    state: {
+      ...state,
+      hintCount: state.hintCount + (counted ? 1 : 0),
+      informationHintSignatures: counted
+        ? [...state.informationHintSignatures, signature]
+        : state.informationHintSignatures,
+    },
+  };
+}
 export function addGuessColorsToNotes(
   puzzle: MastermindPuzzle,
   state: MastermindState,
@@ -552,6 +662,9 @@ export function restore(puzzle: MastermindPuzzle, state: MastermindState) {
     guessNotes: state.guessNotes ?? {},
     memoHintSignatures: Array.isArray(state.memoHintSignatures)
       ? state.memoHintSignatures
+      : [],
+    informationHintSignatures: Array.isArray(state.informationHintSignatures)
+      ? state.informationHintSignatures
       : [],
   };
   if (

@@ -64,3 +64,44 @@ it("selects history for staged organization and adds its colors to every positio
     screen.getByRole("button", { name: "選択履歴からメモ整理" }),
   ).toBeEnabled();
 });
+it("evaluates the current guess from selected histories and reveals examples as a hint", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  const informationPuzzle = {
+    ...puzzle,
+    id: "ui-mastermind-information",
+    allowDuplicates: true,
+    secret: [6, 6, 2, 5],
+  };
+  render(
+    <MastermindGame
+      puzzle={informationPuzzle}
+      onBack={vi.fn()}
+      onLauncher={vi.fn()}
+    />,
+  );
+  await waitFor(() => screen.getByLabelText("入力位置 1"));
+  for (const guess of [
+    [1, 2, 5, 6],
+    [2, 3, 5, 6],
+  ]) {
+    for (const value of guess)
+      await user.click(screen.getByRole("button", { name: `数字 ${value}` }));
+    await user.click(screen.getByRole("button", { name: "この予想を判定" }));
+  }
+  const targets = screen.getAllByRole("button", { name: "整理対象" });
+  await user.click(targets[0]);
+  await user.click(targets[1]);
+  for (const value of [2, 1, 5, 6])
+    await user.click(screen.getByRole("button", { name: `数字 ${value}` }));
+  await user.click(screen.getByRole("button", { name: "レベル1" }));
+  expect(
+    screen.getByText(/現在入力: 2156／評価: 非常に低い/),
+  ).toBeInTheDocument();
+  expect(screen.getByText("判定分岐 2種類")).toBeInTheDocument();
+  await user.click(
+    screen.getByRole("button", { name: "情報収集に向く回答例を見る" }),
+  );
+  expect(screen.getByText("ヒント: 1回")).toBeInTheDocument();
+  expect(screen.getByText(/情報収集向けの回答例を表示/)).toBeInTheDocument();
+});
