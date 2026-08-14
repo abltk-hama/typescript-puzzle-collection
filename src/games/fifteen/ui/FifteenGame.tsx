@@ -408,7 +408,7 @@ export function FifteenGame({
             })}
           </div>
         </div>
-        <MessagePanel message={message} />
+        <MessagePanel message={message} logKey={`fifteen:${puzzle.id}`} />
         {mode === "navigate" && navigationTarget !== null && (
           <div className="macro-controls">
             <p>経路候補</p>

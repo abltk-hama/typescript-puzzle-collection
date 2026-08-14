@@ -492,7 +492,7 @@ export function MazeGame({
             )}
           </section>
         </div>
-        <MessagePanel message={message} />
+        <MessagePanel message={message} logKey={`maze:${puzzle.id}`} />
         {settings.autoEnabled && !complete && (
           <div className="maze-branch-controls">
             <h2>

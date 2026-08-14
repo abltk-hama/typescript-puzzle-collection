@@ -19,6 +19,7 @@ export function FormulaSetup({
   onLauncher: () => void;
 }) {
   const [difficulty, setDifficulty] = useState<FormulaDifficulty>("easy"),
+    [sharedSize, setSharedSize] = useState<7 | 9>(7),
     [generated, setGenerated] = useState<FormulaPuzzle[]>([]),
     [progress, setProgress] = useState(new Set<string>()),
     [busy, setBusy] = useState(false),
@@ -36,7 +37,7 @@ export function FormulaSetup({
     setError("");
     setTimeout(() => {
       try {
-        onStart(generateFormulaSigns(Date.now() >>> 0, difficulty));
+        onStart(generateFormulaSigns(Date.now() >>> 0, difficulty, sharedSize));
       } catch (reason) {
         setError(
           reason instanceof Error ? reason.message : "生成に失敗しました。",
@@ -72,6 +73,20 @@ export function FormulaSetup({
                 )}
               </select>
             </label>
+            {(difficulty === "hard" || difficulty === "challenge") && (
+              <label>
+                共有盤面サイズ
+                <select
+                  value={sharedSize}
+                  onChange={(event) =>
+                    setSharedSize(Number(event.target.value) as 7 | 9)
+                  }
+                >
+                  <option value="7">7×7</option>
+                  <option value="9">9×9</option>
+                </select>
+              </label>
+            )}
             <p>
               通常の計算優先順位を使い、各式内の数字は重複しません。一意解を確認して生成します。
             </p>

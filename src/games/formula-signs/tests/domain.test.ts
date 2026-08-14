@@ -7,6 +7,7 @@ import {
 } from "../domain/formulaSigns";
 import { countSolutions } from "../domain/solver";
 import { generateFormulaSigns } from "../generation/generate";
+import { calculationBasis } from "../ui/verificationBasis";
 describe("formula signs", () => {
   it("uses normal multiplication precedence", () =>
     expect(evaluateExpression([2, 3, 5], ["+", "*"])).toBe(17));
@@ -56,5 +57,30 @@ describe("formula signs", () => {
     expect(analysis.operatorCandidates.some((items) => items.length)).toBe(
       true,
     );
+  });
+  it.each([7, 9] as const)("generates a unique shared %sx%s puzzle", (size) => {
+    const puzzle = generateFormulaSigns(4321, "hard", size);
+    expect(puzzle.width).toBe(size);
+    expect(countSolutions(puzzle)).toBe(1);
+  });
+  it("generates a 9x9 challenge with hidden numbers", () => {
+    const puzzle = generateFormulaSigns(5678, "challenge", 9);
+    expect(puzzle.width).toBe(9);
+    expect(
+      puzzle.numberGivens.some(
+        (value, index) => puzzle.cells[index] === "number" && !value,
+      ),
+    ).toBe(true);
+    expect(countSolutions(puzzle)).toBe(1);
+  });
+  it("precomputes safe fixed trailing terms for verification", () => {
+    const cells = [0, 1, 2, 3, 4, 5, 6],
+      numbers = [4, 0, 7, 0, 9, 0, 8];
+    expect(
+      calculationBasis(cells, 260, numbers, [null, null, null, null, null, "+", null]),
+    ).toMatchObject({ target: 252, cells: [0, 1, 2, 3, 4] });
+    expect(
+      calculationBasis(cells, 260, numbers, [null, null, null, "+", null, "*", null]),
+    ).toMatchObject({ target: 188, cells: [0, 1, 2] });
   });
 });

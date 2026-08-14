@@ -47,29 +47,33 @@ function independent(count: 3 | 4) {
   }
   return { width: size, height: size, cells, expressions };
 }
-function shared() {
-  const width = 5,
-    height = 5,
-    cells: CellKind[] = Array(25).fill("block"),
+function shared(size: 7 | 9) {
+  const width = size,
+    height = size,
+    cells: CellKind[] = Array(size * size).fill("block"),
     expressions: FormulaExpression[] = [];
-  for (const row of [1, 3])
-    for (let col = 0; col < 5; col++)
-      cells[row * 5 + col] = col % 2 === 0 ? "number" : "operator";
-  for (const col of [1, 3])
-    for (let row = 0; row < 5; row++)
-      cells[row * 5 + col] = row % 2 === 0 ? "number" : "operator";
-  for (const row of [1, 3])
+  const units = Array.from(
+    { length: (size - 1) / 2 },
+    (_, index) => index * 2 + 1,
+  );
+  for (const row of units)
+    for (let col = 0; col < size; col++)
+      cells[row * size + col] = col % 2 === 0 ? "number" : "operator";
+  for (const col of units)
+    for (let row = 0; row < size; row++)
+      cells[row * size + col] = row % 2 === 0 ? "number" : "operator";
+  for (const row of units)
     expressions.push({
       id: `h${row}`,
       direction: "horizontal",
-      cells: Array.from({ length: 5 }, (_, col) => row * 5 + col),
+      cells: Array.from({ length: size }, (_, col) => row * size + col),
       target: 0,
     });
-  for (const col of [1, 3])
+  for (const col of units)
     expressions.push({
       id: `v${col}`,
       direction: "vertical",
-      cells: Array.from({ length: 5 }, (_, row) => row * 5 + col),
+      cells: Array.from({ length: size }, (_, row) => row * size + col),
       target: 0,
     });
   return { width, height, cells, expressions };
@@ -77,6 +81,7 @@ function shared() {
 export function generateFormulaSigns(
   seed = Date.now() >>> 0,
   difficulty: FormulaDifficulty = "easy",
+  sharedSize: 7 | 9 = 7,
 ): FormulaPuzzle {
   const rng = random(seed),
     layout =
@@ -84,7 +89,7 @@ export function generateFormulaSigns(
         ? independent(3)
         : difficulty === "medium"
           ? independent(4)
-          : shared(),
+          : shared(sharedSize),
     allowedOperators: Operator[] =
       difficulty === "easy" ? ["+", "-"] : ["+", "-", "*"];
   for (let attempt = 0; attempt < 600; attempt++) {
@@ -154,7 +159,7 @@ export function generateFormulaSigns(
       }
     const puzzle: FormulaPuzzle = {
       id: `generated-formula-${difficulty}-${seed}`,
-      title: `生成問題 ${difficultyLabel(difficulty)}`,
+      title: `生成問題 ${difficultyLabel(difficulty)} ${layout.width}×${layout.height}`,
       difficulty,
       ...layout,
       expressions,

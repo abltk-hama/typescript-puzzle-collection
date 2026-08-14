@@ -391,6 +391,63 @@ select {
   background: #edf8fa;
   border-radius: 8px;
 }
+.message-log-toggle {
+  border: 0;
+  background: transparent;
+  color: #075985;
+  text-decoration: underline;
+  font-weight: 700;
+}
+.activity-log {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #7dd3fc;
+  text-align: left;
+}
+.activity-log ol {
+  display: grid;
+  gap: 6px;
+  max-height: 16rem;
+  margin: 8px 0 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+.activity-log li {
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+  gap: 8px;
+  padding: 7px;
+  border-radius: 7px;
+  background: #fff;
+}
+.activity-log time {
+  color: #526272;
+  font-variant-numeric: tabular-nums;
+}
+.verification-bases {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin: 10px 0;
+}
+.verification-bases > button {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid #94a3b8;
+  border-radius: 9px;
+  background: #fff;
+  color: #172033;
+  text-align: left;
+}
+.verification-bases > button.active {
+  background: #f3e8ff;
+  outline: 3px solid #7c3aed;
+}
+.verification-bases small {
+  color: #526272;
+}
 .message-log p {
   margin: 4px 0;
 }
@@ -1733,6 +1790,112 @@ select {
   background: #f3e8ff;
   outline: 3px solid #7c3aed;
 }
+.formula-target.contradiction {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #dc2626;
+}
+.verification-panel {
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid #7dd3fc;
+  border-radius: 12px;
+  background: #f0f9ff;
+}
+.verification-panel header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+.verification-panel h2,
+.verification-panel h3 {
+  margin: 0 0 9px;
+}
+.verification-number-select {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+.verification-expression-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 10px 0;
+}
+.verification-expression-switch .contradiction {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #dc2626;
+}
+.verification-valid {
+  padding: 8px;
+  border-left: 4px solid #16a34a;
+  background: #f0fdf4;
+}
+.verification-panel [role="alert"] {
+  padding: 8px;
+  border-left: 4px solid #dc2626;
+  background: #fef2f2;
+  color: #991b1b;
+}
+.verification-session-actions {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #7dd3fc;
+}
+.verification-table-wrap {
+  overflow: auto;
+  margin: 8px 0 16px;
+}
+.verification-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 3px;
+  min-width: 34rem;
+}
+.verification-table th {
+  padding: 7px;
+  background: #e2e8f0;
+  color: #172033;
+  white-space: nowrap;
+}
+.verification-table td {
+  padding: 0;
+  background: #fff;
+}
+.verification-table td button {
+  width: 100%;
+  min-height: 3.2rem;
+  padding: 6px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #172033;
+}
+.verification-table td button.active {
+  background: #f3e8ff;
+  outline: 3px solid #7c3aed;
+}
+.verification-table td small {
+  display: block;
+  color: #526272;
+}
+.verification-table.second {
+  min-width: 46rem;
+}
+.verification-apply {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-left: 5px solid #7c3aed;
+  background: #fff;
+}
+.verification-apply small {
+  width: 100%;
+}
 .formula-card + .game-card {
   margin-top: 0;
 }
@@ -1747,11 +1910,33 @@ select {
   }
   .formula-board {
     --formula-cell: min(12vw, 3.4rem);
-    --formula-target: 3.7rem;
+    --formula-target: 3rem;
     max-width: 100%;
   }
   .formula-board.size-7 {
-    --formula-cell: min(3.4rem, calc((100vw - 6.2rem) / 7));
+    --formula-cell: min(3.4rem, calc((100vw - 7.4rem) / 7));
+  }
+  .formula-board.size-9 {
+    --formula-cell: min(3.1rem, calc((100vw - 7.4rem) / 9));
+  }
+  .verification-panel {
+    padding: 10px;
+  }
+  .verification-bases {
+    grid-template-columns: 1fr;
+  }
+  .activity-log li {
+    grid-template-columns: 4.2rem 1fr;
+    font-size: 0.82rem;
+  }
+  .verification-panel header {
+    display: block;
+  }
+  .verification-panel header .actions {
+    margin-top: 8px;
+  }
+  .verification-table {
+    font-size: 0.8rem;
   }
   .formula-board .formula-target {
     font-size: 0.68rem;

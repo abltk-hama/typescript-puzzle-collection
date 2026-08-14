@@ -299,6 +299,7 @@ export function KakuroGame({
           </div>
         </div>
         <MessagePanel
+          logKey={`kakuro:${puzzle.id}`}
           message={
             complete
               ? `完成しました！（ヒント使用 ${state.hintCount}回）`

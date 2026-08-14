@@ -306,7 +306,7 @@ export function NonogramGame({
             ))}
           </div>
         </div>
-        <MessagePanel message={complete?`完成しました！（ヒント使用 ${state.hintCount}回）`:message}/>
+        <MessagePanel message={complete?`完成しました！（ヒント使用 ${state.hintCount}回）`:message} logKey={`nonogram:${puzzle.id}`}/>
         <div className="assist-settings">
           <button className="button secondary" onClick={()=>setSettingsOpen(open=>!open)}>補助設定{settingsOpen?"を閉じる":"を開く"}</button>
           {settingsOpen&&<div className="assist-settings-panel">

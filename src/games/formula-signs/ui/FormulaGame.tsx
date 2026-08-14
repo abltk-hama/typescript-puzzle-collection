@@ -10,8 +10,6 @@ import {
 import {
   addNotes,
   analyzeFormula,
-  applyAssignment,
-  applyForced,
   clearValue,
   commitHypothesis,
   discardHypothesis,
@@ -35,6 +33,7 @@ import {
   loadFormulaSession,
   saveFormulaSession,
 } from "../data/sessions";
+import { FormulaVerification } from "./FormulaVerification";
 type Phase = "loading" | "ask" | "play";
 interface Assist {
   expressionHighlight: boolean;
@@ -65,7 +64,9 @@ export function FormulaGame({
       loadAssistSettings("formula_signs", defaults),
     ),
     [settings, setSettings] = useState(false),
-    [limit, setLimit] = useState(20),
+    [verificationExpressionId, setVerificationExpressionId] = useState<
+      string | null
+    >(null),
     saved = useRef<FormulaState | undefined>(undefined),
     numbers = useMemo(() => workingNumbers(state), [state]),
     operators = useMemo(() => workingOperators(state), [state]),
@@ -81,7 +82,8 @@ export function FormulaGame({
       [puzzle, numbers, operators, state.numberNotes, state.operatorNotes],
     ),
     complete = isComplete(puzzle, state),
-    activeId = state.hypothesis?.selectedExpressionId ?? null,
+    activeId =
+      state.hypothesis?.selectedExpressionId ?? verificationExpressionId,
     active = puzzle.expressions.find((e) => e.id === activeId),
     selectedExpressions =
       state.selected === null ? [] : expressionsForCell(puzzle, state.selected);
@@ -273,7 +275,7 @@ export function FormulaGame({
                 return e ? (
                   <button
                     key={`r${row}`}
-                    className={`formula-target ${activeId === e.id ? "active" : ""}`}
+                    className={`formula-target ${activeId === e.id ? "active" : ""} ${analysis.domains.get(e.id)?.length === 0 ? "contradiction" : ""}`}
                     onClick={() =>
                       state.hypothesis &&
                       setState(selectHypothesisExpression(state, e.id))
@@ -291,7 +293,7 @@ export function FormulaGame({
               return e ? (
                 <button
                   key={`c${column}`}
-                  className={`formula-target ${activeId === e.id ? "active" : ""}`}
+                  className={`formula-target ${activeId === e.id ? "active" : ""} ${analysis.domains.get(e.id)?.length === 0 ? "contradiction" : ""}`}
                   onClick={() =>
                     state.hypothesis &&
                     setState(selectHypothesisExpression(state, e.id))
@@ -307,12 +309,13 @@ export function FormulaGame({
           </div>
         </div>
         <MessagePanel
+          logKey={`formula_signs:${puzzle.id}`}
           message={
             complete
               ? `完成しました！（ヒント使用 ${state.hintCount}回）`
               : analysis.contradictionExpressionId &&
                   assist.contradictionWarning
-                ? `${expressionLabel(analysis.contradictionExpressionId)}が成立しません。`
+                ? "現在の入力から成立できない式があります。赤い目標値の行・列を確認してください。"
                 : message
           }
         />
@@ -402,13 +405,20 @@ export function FormulaGame({
             </div>
           </section>
         )}
-        {state.hypothesis && (
+        <FormulaVerification
+          puzzle={puzzle}
+          state={state}
+          setState={setState}
+          setMessage={setMessage}
+          onExpressionChange={setVerificationExpressionId}
+        />
+        {state.hypothesis && !verificationExpressionId && (
           <section className="hypothesis-panel">
             <div className="hypothesis-summary">
               <strong>仮説探索</strong>
               <span>段階 {state.hypothesis.history.length}</span>
             </div>
-            {state.selected !== null && !active && (
+            {state.selected !== null && (
               <div className="actions">
                 {selectedExpressions.map((e) => (
                   <button
@@ -416,7 +426,6 @@ export function FormulaGame({
                     key={e.id}
                     onClick={() => {
                       setState(selectHypothesisExpression(state, e.id));
-                      setLimit(20);
                     }}
                   >
                     {expressionLabel(e.id)}から考える
@@ -425,51 +434,11 @@ export function FormulaGame({
               </div>
             )}
             {active && (
-              <>
-                <h3>
-                  {expressionLabel(active.id)}：成立候補{" "}
-                  {analysis.domains.get(active.id)?.length ?? 0}通り
-                </h3>
-                <div className="sequence-list">
-                  {analysis.domains
-                    .get(active.id)
-                    ?.slice(0, limit)
-                    .map((assignment, index) => (
-                      <button
-                        className="sequence-card"
-                        key={index}
-                        onClick={() =>
-                          setState(applyAssignment(state, assignment))
-                        }
-                      >
-                        {active.cells
-                          .map((cell, i) =>
-                            i % 2 === 0
-                              ? assignment.numbers.get(cell)
-                              : symbol(assignment.operators.get(cell)!),
-                          )
-                          .join(" ")}
-                      </button>
-                    ))}
-                </div>
-                {(analysis.domains.get(active.id)?.length ?? 0) > limit && (
-                  <button
-                    className="button secondary"
-                    onClick={() => setLimit(limit + 20)}
-                  >
-                    さらに表示
-                  </button>
-                )}
-              </>
-            )}
-            {(analysis.forcedNumbers.length > 0 ||
-              analysis.forcedOperators.length > 0) && (
-              <button
-                className="button secondary"
-                onClick={() => setState(applyForced(state, analysis))}
-              >
-                伝播した確定候補をすべて仮入力
-              </button>
+              <p>
+                {expressionLabel(active.id)}：成立候補は{" "}
+                {analysis.domains.get(active.id)?.length ?? 0}{" "}
+                通りです。具体的な並びは表示しません。
+              </p>
             )}
             <div className="actions">
               <button

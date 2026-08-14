@@ -473,7 +473,7 @@ export function MastermindGame({
             この予想を判定
           </button>
         </div>
-        <MessagePanel message={message} />
+        <MessagePanel message={message} logKey={`mastermind:${puzzle.id}`} />
         <section className="mastermind-organizer">
           <h2>履歴整理</h2>
           <div className="actions organization-levels">
