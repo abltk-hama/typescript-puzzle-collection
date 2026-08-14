@@ -15,6 +15,17 @@ const masks = {
     "#..#..#",
     "#######",
   ],
+  9: [
+    "#########",
+    "#...#...#",
+    "#...#...#",
+    "#.......#",
+    "###...###",
+    "#.......#",
+    "#...#...#",
+    "#...#...#",
+    "#########",
+  ],
 } as const;
 function rng(seed: number) {
   let v = seed || 1;
@@ -49,7 +60,7 @@ function structural(width: number, white: boolean[]) {
 }
 export function generateKakuro(
   seed = Date.now() >>> 0,
-  size: 5 | 7 = 5,
+  size: 5 | 7 | 9 = 5,
 ): KakuroPuzzle {
   const random = rng(seed),
     white = masks[size].flatMap((row) => [...row].map((cell) => cell === "."));
@@ -119,10 +130,19 @@ export function generateKakuro(
       clues,
       solution,
       generated: true,
-      estimatedDifficulty: size === 5 ? "やさしい目安" : "ふつう目安",
+      estimatedDifficulty:
+        size === 5
+          ? "やさしい目安"
+          : size === 7
+            ? "ふつう目安"
+            : "むずかしい目安",
     };
     const revealOrder = shuffle([...cells], random);
-    for (const index of revealOrder) {
+    const initialRevealCount = size === 9 ? Math.floor(cells.length / 2) : 0;
+    revealOrder
+      .slice(0, initialRevealCount)
+      .forEach((index) => (puzzle.givens[index] = solution[index]));
+    for (const index of revealOrder.slice(initialRevealCount)) {
       if (
         countSolutions(puzzle) === 1 &&
         (size === 7 || isPropagationSolvable(puzzle))

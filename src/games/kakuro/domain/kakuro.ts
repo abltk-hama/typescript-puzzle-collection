@@ -11,8 +11,8 @@ export interface KakuroPuzzle {
   id: string;
   title: string;
   difficulty: KakuroDifficulty;
-  width: 5 | 7;
-  height: 5 | 7;
+  width: 5 | 7 | 9;
+  height: 5 | 7 | 9;
   white: boolean[];
   clues: KakuroClue[];
   givens: number[];

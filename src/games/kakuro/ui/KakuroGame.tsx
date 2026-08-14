@@ -238,7 +238,7 @@ export function KakuroGame({
                 return (
                   <button
                     key={index}
-                    className="kakuro-clue"
+                    className={`kakuro-clue ${clue ? "has-clue" : "blank"}`}
                     aria-label={
                       clue
                         ? `下 ${clue.down ?? "なし"} 右 ${clue.right ?? "なし"}`
@@ -252,8 +252,18 @@ export function KakuroGame({
                         chooseRun(choices[0].id);
                     }}
                   >
-                    {clue?.down && <span className="down">{clue.down}</span>}
-                    {clue?.right && <span className="right">{clue.right}</span>}
+                    {clue?.down && (
+                      <span className="down">
+                        <b>↓</b>
+                        {clue.down}
+                      </span>
+                    )}
+                    {clue?.right && (
+                      <span className="right">
+                        <b>→</b>
+                        {clue.right}
+                      </span>
+                    )}
                   </button>
                 );
               }

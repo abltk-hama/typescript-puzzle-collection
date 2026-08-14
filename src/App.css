@@ -1673,6 +1673,11 @@ select {
   font-weight: 800;
 }
 .kakuro-clue {
+  background: #1e293b !important;
+  color: #fff !important;
+  font-size: 0.68rem !important;
+}
+.kakuro-clue.has-clue {
   background: linear-gradient(
     45deg,
     #1e293b 49%,
@@ -1680,8 +1685,15 @@ select {
     #94a3b8 51%,
     #1e293b 51%
   ) !important;
-  color: #fff !important;
-  font-size: 0.68rem !important;
+}
+.kakuro-clue span {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+.kakuro-clue span b {
+  color: #7dd3fc;
+  font-size: 0.72rem;
 }
 .kakuro-clue .down {
   position: absolute;
@@ -1753,6 +1765,9 @@ select {
   }
   .kakuro-board.size-7 {
     --kakuro-cell: calc((100vw - 38px) / 7);
+  }
+  .kakuro-board.size-9 {
+    --kakuro-cell: calc((100vw - 38px) / 9);
   }
   .kakuro-clue {
     font-size: 0.55rem !important;

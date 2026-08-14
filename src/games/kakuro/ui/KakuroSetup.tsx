@@ -12,7 +12,7 @@ export function KakuroSetup({
   onStart: (p: KakuroPuzzle) => void;
   onLauncher: () => void;
 }) {
-  const [size, setSize] = useState<5 | 7>(5),
+  const [size, setSize] = useState<5 | 7 | 9>(5),
     [generated, setGenerated] = useState<KakuroPuzzle[]>([]),
     [progress, setProgress] = useState(new Set<string>()),
     [busy, setBusy] = useState(false),
@@ -69,10 +69,11 @@ export function KakuroSetup({
               サイズ
               <select
                 value={size}
-                onChange={(e) => setSize(Number(e.target.value) as 5 | 7)}
+                onChange={(e) => setSize(Number(e.target.value) as 5 | 7 | 9)}
               >
                 <option value="5">5×5（やさしい目安）</option>
                 <option value="7">7×7（ふつう目安）</option>
+                <option value="9">9×9（むずかしい目安）</option>
               </select>
             </label>
             <p>一意解を確認して生成します。難易度は完全には保証されません。</p>

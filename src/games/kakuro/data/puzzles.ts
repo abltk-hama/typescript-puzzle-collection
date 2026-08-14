@@ -5,7 +5,7 @@ const item = z.object({
     id: z.string(),
     title: z.string(),
     difficulty: z.enum(["easy", "medium"]),
-    size: z.union([z.literal(5), z.literal(7)]),
+    size: z.union([z.literal(5), z.literal(7), z.literal(9)]),
     problem: z.object({
       mask: z.array(z.string()),
       clues: z.record(
