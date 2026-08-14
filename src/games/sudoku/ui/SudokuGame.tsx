@@ -66,6 +66,7 @@ export function SudokuGame({
     [logicalHint, setLogicalHint] = useState<LogicalHint | null>(null),
     [reviewMode, setReviewMode] = useState<"row" | "column" | null>(null),
     [reviewIndex, setReviewIndex] = useState(0),
+    [pendingReviewCell, setPendingReviewCell] = useState<number | null>(null),
     [assistSettings, setAssistSettings] = useState(() =>
       loadAssistSettings("sudoku", sudokuAssistDefaults),
     ),
@@ -200,6 +201,24 @@ export function SudokuGame({
     if (reviewMode) {
       const nextIndex =
         reviewMode === "row" ? Math.floor(index / 9) : index % 9;
+      if (!value) {
+        if (nextIndex === reviewIndex) {
+          setPendingReviewCell(index);
+          setMessage(
+            `${Math.floor(index / 9) + 1}行${(index % 9) + 1}列は確認対象内の空きマスです。操作を選んでください。`,
+          );
+          return;
+        }
+        const review = activeReview!;
+        setReviewMode(null);
+        setPendingReviewCell(null);
+        setState(selectCell(state, index));
+        setMessage(
+          `直前の確認：${review.kind === "row" ? "行" : "列"}${review.unitIndex + 1}の未使用数字 ${review.unused.join("・") || "なし"}。${Math.floor(index / 9) + 1}行${(index % 9) + 1}列を選択しました。`,
+        );
+        return;
+      }
+      setPendingReviewCell(null);
       setReviewIndex(nextIndex);
       const review = unitReview(state.values, reviewMode, nextIndex);
       setMessage(
@@ -380,6 +399,7 @@ export function SudokuGame({
                   if (reviewMode) {
                     const review = activeReview!;
                     setReviewMode(null);
+                    setPendingReviewCell(null);
                     setMessage(
                       `直前の確認：${review.kind === "row" ? "行" : "列"}${review.unitIndex + 1}の未使用数字 ${review.unused.join("・") || "なし"}。3×3ブロックを確認してください。`,
                     );
@@ -393,6 +413,7 @@ export function SudokuGame({
                     }
                     setReviewMode(first.kind);
                     setReviewIndex(first.unitIndex);
+                    setPendingReviewCell(null);
                     setMessage(
                       `${first.kind === "row" ? "行" : "列"}確認を開始しました。盤面を選ぶか、前後ボタンで巡回できます。`,
                     );
@@ -452,10 +473,14 @@ export function SudokuGame({
                   data-review={
                     activeReview?.cells.includes(index) ? "active" : undefined
                   }
+                  data-review-pending={
+                    pendingReviewCell === index ? "true" : undefined
+                  }
                   onClick={() => selectBoardCell(index, value)}
                   onContextMenu={(event) => {
                     event.preventDefault();
-                    setState(setMode(selectCell(state, index), "note"));
+                    if (reviewMode) selectBoardCell(index, value);
+                    else setState(setMode(selectCell(state, index), "note"));
                   }}
                 >
                   {value || (
@@ -489,6 +514,7 @@ export function SudokuGame({
                   }
                   setReviewMode(next);
                   setReviewIndex(available[0].unitIndex);
+                  setPendingReviewCell(null);
                 }}
               >
                 {reviewMode === "row" ? "列確認へ" : "行確認へ"}
@@ -505,7 +531,10 @@ export function SudokuGame({
                     available[
                       (position - 1 + available.length) % available.length
                     ];
-                  if (next) setReviewIndex(next.unitIndex);
+                  if (next) {
+                    setReviewIndex(next.unitIndex);
+                    setPendingReviewCell(null);
+                  }
                 }}
               >
                 前へ
@@ -523,7 +552,10 @@ export function SudokuGame({
                     (unit) => unit.unitIndex === reviewIndex,
                   );
                   const next = available[(position + 1) % available.length];
-                  if (next) setReviewIndex(next.unitIndex);
+                  if (next) {
+                    setReviewIndex(next.unitIndex);
+                    setPendingReviewCell(null);
+                  }
                 }}
               >
                 次へ
@@ -539,6 +571,51 @@ export function SudokuGame({
             <p>
               キーパッドの明るい数字を確認し、3×3ブロックは盤面から判断してください。
             </p>
+            {pendingReviewCell !== null && (
+              <div className="review-cell-choice">
+                <strong>
+                  {Math.floor(pendingReviewCell / 9) + 1}行
+                  {(pendingReviewCell % 9) + 1}列の操作
+                </strong>
+                <div className="actions">
+                  <button
+                    className="button secondary"
+                    onClick={() => {
+                      setPendingReviewCell(null);
+                      setMessage(
+                        `${reviewMode === "row" ? "行" : "列"}${reviewIndex + 1}の確認を維持します。`,
+                      );
+                    }}
+                  >
+                    {reviewMode === "row" ? "この行を確認" : "この列を確認"}
+                  </button>
+                  <button
+                    className="button"
+                    onClick={() => {
+                      const index = pendingReviewCell,
+                        review = activeReview!;
+                      setReviewMode(null);
+                      setPendingReviewCell(null);
+                      setState(selectCell(state, index));
+                      setMessage(
+                        `直前の確認：${review.kind === "row" ? "行" : "列"}${review.unitIndex + 1}の未使用数字 ${review.unused.join("・") || "なし"}。${Math.floor(index / 9) + 1}行${(index % 9) + 1}列を選択しました。`,
+                      );
+                    }}
+                  >
+                    このマスへ入力
+                  </button>
+                  <button
+                    className="button secondary"
+                    onClick={() => {
+                      setPendingReviewCell(null);
+                      setMessage("空きマスの操作を取り消しました。");
+                    }}
+                  >
+                    キャンセル
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
         <MessagePanel
@@ -650,7 +727,10 @@ export function SudokuGame({
                       ...assistSettings,
                       rowColumnReview: event.target.checked,
                     });
-                    if (!event.target.checked) setReviewMode(null);
+                    if (!event.target.checked) {
+                      setReviewMode(null);
+                      setPendingReviewCell(null);
+                    }
                   }}
                 />{" "}
                 行・列確認モード
@@ -803,6 +883,8 @@ export function SudokuGame({
                   setFocusMode(false);
                   setFocusedDigit(null);
                   setLogicalHint(null);
+                  setReviewMode(null);
+                  setPendingReviewCell(null);
                   deleteSudokuSession(puzzle.id);
                   setMessage("盤面を初期状態に戻しました。");
                 }

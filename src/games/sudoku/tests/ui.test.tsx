@@ -148,3 +148,53 @@ it("reviews a near-complete row through the keypad without entering a digit", as
   );
   expect(screen.getByText(/参照表示/)).toBeInTheDocument();
 });
+it("switches the reviewed row from a filled cell and exits on an outside empty cell", async () => {
+  const reviewPuzzle: SudokuPuzzle = {
+    ...puzzle,
+    id: "sudoku-ui-review-navigation",
+    givens: solution.map((value, index) =>
+      [8, 9, 10].includes(index) ? 0 : value,
+    ),
+  };
+  const { user, view } = await renderGame(reviewPuzzle);
+  await user.click(screen.getByRole("button", { name: "行・列確認 OFF" }));
+  expect(screen.getByText(/行1/)).toBeInTheDocument();
+  await user.click(screen.getByRole("gridcell", { name: "2行3列 2" }));
+  expect(screen.getAllByText(/行2/).length).toBeGreaterThan(0);
+  await user.click(screen.getByRole("gridcell", { name: "1行9列" }));
+  expect(
+    screen.getByRole("button", { name: "行・列確認 OFF" }),
+  ).toBeInTheDocument();
+  expect(view.container.querySelector(".sudoku-unit-review")).toBeNull();
+  expect(screen.getByRole("gridcell", { name: "1行9列" })).toHaveClass(
+    "selected",
+  );
+});
+it("asks whether to keep review or enter an empty cell in the active unit", async () => {
+  const reviewPuzzle: SudokuPuzzle = {
+    ...puzzle,
+    id: "sudoku-ui-review-choice",
+    givens: solution.map((value, index) => (index === 8 ? 0 : value)),
+  };
+  const { user } = await renderGame(reviewPuzzle);
+  await user.click(screen.getByRole("button", { name: "行・列確認 OFF" }));
+  const empty = screen.getByRole("gridcell", { name: "1行9列" });
+  await user.click(empty);
+  expect(
+    screen.getByRole("button", { name: "この行を確認" }),
+  ).toBeInTheDocument();
+  expect(empty).toHaveAttribute("data-review-pending", "true");
+  await user.click(screen.getByRole("button", { name: "キャンセル" }));
+  expect(
+    screen.queryByRole("button", { name: "このマスへ入力" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "行・列確認 ON" }),
+  ).toBeInTheDocument();
+  await user.click(empty);
+  await user.click(screen.getByRole("button", { name: "このマスへ入力" }));
+  expect(
+    screen.getByRole("button", { name: "行・列確認 OFF" }),
+  ).toBeInTheDocument();
+  expect(empty).toHaveClass("selected");
+});

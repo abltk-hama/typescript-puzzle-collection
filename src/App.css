@@ -654,6 +654,11 @@ select {
   box-shadow: inset 0 0 0 3px #0284c7;
   z-index: 3;
 }
+.sudoku-board > button[data-review-pending="true"] {
+  outline: 4px solid #f97316;
+  outline-offset: -4px;
+  z-index: 5;
+}
 .sudoku-board > button {
   position: relative;
 }
@@ -697,6 +702,18 @@ select {
 }
 .sudoku-unit-review p {
   margin: 7px 0 0;
+}
+.review-cell-choice {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #7dd3fc;
+}
+.review-cell-choice > strong {
+  display: block;
+  margin-bottom: 8px;
+}
+.review-cell-choice .button {
+  flex: 1 1 30%;
 }
 .nonogram-modes {
   display: flex;
