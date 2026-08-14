@@ -24,6 +24,10 @@ import { loadBundledPuzzles as loadNonogram } from "../games/nonogram/data/puzzl
 import type { NonogramPuzzle } from "../games/nonogram/domain/nonogram";
 import { NonogramGame } from "../games/nonogram/ui/NonogramGame";
 import { NonogramSetup } from "../games/nonogram/ui/NonogramSetup";
+import { loadBundledPuzzles as loadSkyscraper } from "../games/skyscraper/data/puzzles";
+import type { SkyscraperPuzzle } from "../games/skyscraper/domain/skyscraper";
+import { SkyscraperGame } from "../games/skyscraper/ui/SkyscraperGame";
+import { SkyscraperSetup } from "../games/skyscraper/ui/SkyscraperSetup";
 
 export type GameId =
   | "lights_out"
@@ -31,7 +35,8 @@ export type GameId =
   | "mastermind"
   | "maze"
   | "sudoku"
-  | "nonogram";
+  | "nonogram"
+  | "skyscraper";
 export interface GameRegistration {
   id: GameId;
   displayName: string;
@@ -125,6 +130,16 @@ export const gameCatalog: readonly GameRegistration[] = [
     loadPuzzles: loadNonogram,
     Setup: NonogramSetup,
     Game: NonogramGame,
+  }),
+  register<SkyscraperPuzzle>({
+    id: "skyscraper",
+    displayName: "スカイスクレーパー",
+    description: "見える建物の数から高さを推理しよう",
+    icon: "▥",
+    cardClass: "skyscraper-card",
+    loadPuzzles: loadSkyscraper,
+    Setup: SkyscraperSetup,
+    Game: SkyscraperGame,
   }),
 ];
 export function findGame(id: GameId | null) {

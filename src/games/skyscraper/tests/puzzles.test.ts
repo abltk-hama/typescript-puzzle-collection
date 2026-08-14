@@ -1,0 +1,4 @@
+import { describe,expect,it } from "vitest";
+import { bundledPuzzlesUrl,parsePuzzles } from "../data/puzzles";
+const entry={id:"one",title:"One",difficulty:"easy",size:4,problem:{clues:{top:[4,3,2,1],right:[1,2,2,2],bottom:[1,2,2,2],left:[4,3,2,1]},givens:Array(16).fill(0)},solution:[1,2,3,4,2,3,4,1,3,4,1,2,4,1,2,3]};
+describe("skyscraper puzzle data",()=>{it("parses a valid unique puzzle",()=>expect(parsePuzzles({schema_version:1,game_type:"skyscraper",puzzles:[entry]})).toHaveLength(1));it("rejects duplicate ids",()=>expect(()=>parsePuzzles({schema_version:1,game_type:"skyscraper",puzzles:[entry,entry]})).toThrow(/重複/));it("uses the configured base path",()=>expect(bundledPuzzlesUrl("/typescript-puzzle-collection/")).toBe("/typescript-puzzle-collection/puzzles/skyscraper/puzzles.json"))});

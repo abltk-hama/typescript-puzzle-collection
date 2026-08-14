@@ -30,7 +30,9 @@ export default function App() {
             <b>遊ぶ →</b>
           </button>
         ))}
-        <div className="coming-soon">6種類のパズルを収録しています</div>
+        <div className="coming-soon">
+          {gameCatalog.length}種類のパズルを収録しています
+        </div>
       </section>
     </main>
   );
