@@ -21,6 +21,7 @@ import {
   revealHint,
   selectHypothesisExpression,
   startHypothesis,
+  toggleNumberNote,
   undoHypothesis,
   workingNumbers,
   workingOperators,
@@ -34,16 +35,21 @@ import {
   saveFormulaSession,
 } from "../data/sessions";
 import { FormulaVerification } from "./FormulaVerification";
+import { FormulaChainExplorer } from "./FormulaChainExplorer";
 type Phase = "loading" | "ask" | "play";
 interface Assist {
   expressionHighlight: boolean;
   contradictionWarning: boolean;
   hypothesisEnabled: boolean;
+  chainExplorer: boolean;
+  chainAutoAdvance: boolean;
 }
 const defaults: Assist = {
     expressionHighlight: true,
     contradictionWarning: true,
     hypothesisEnabled: true,
+    chainExplorer: true,
+    chainAutoAdvance: false,
   },
   symbol = (op: Operator | null) => (op === "*" ? "×" : (op ?? ""));
 export function FormulaGame({
@@ -64,6 +70,8 @@ export function FormulaGame({
       loadAssistSettings("formula_signs", defaults),
     ),
     [settings, setSettings] = useState(false),
+    [noteMode, setNoteMode] = useState(false),
+    [organizationLevel, setOrganizationLevel] = useState<1 | 2>(1),
     [verificationExpressionId, setVerificationExpressionId] = useState<
       string | null
     >(null),
@@ -107,6 +115,13 @@ export function FormulaGame({
   }, [state, phase, complete, puzzle]);
   useEffect(() => saveAssistSettings("formula_signs", assist), [assist]);
   function input(value: number | Operator) {
+    if (noteMode && typeof value === "number") {
+      const next = toggleNumberNote(puzzle, state, value);
+      setState(next);
+      if (next !== state)
+        setMessage(`${value} の候補メモを切り替えました。`);
+      return;
+    }
     const next = state.hypothesis
       ? enterHypothesis(state, value)
       : enterValue(puzzle, state, value);
@@ -195,13 +210,25 @@ export function FormulaGame({
               ))}
             </div>
             {puzzle.difficulty === "challenge" && (
-              <div className="number-keypad">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
-                  <button key={value} onClick={() => input(value)}>
-                    {value}
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="number-keypad">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
+                    <button key={value} onClick={() => input(value)}>
+                      {value}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  className={`button secondary ${noteMode ? "active" : ""}`}
+                  disabled={Boolean(state.hypothesis)}
+                  onClick={() => {
+                    setNoteMode(!noteMode);
+                    setMessage(`候補メモ入力を${noteMode ? "終了" : "開始"}しました。`);
+                  }}
+                >
+                  候補メモ {noteMode ? "ON" : "OFF"}
+                </button>
+              </>
             )}
             <button
               className="button secondary"
@@ -367,6 +394,31 @@ export function FormulaGame({
                 />
                 仮説探索
               </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={assist.chainExplorer}
+                  onChange={(e) => {
+                    setAssist({ ...assist, chainExplorer: e.target.checked });
+                    if (!e.target.checked) setOrganizationLevel(1);
+                  }}
+                />
+                整理レベル2：成立式の連鎖探索
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={assist.chainAutoAdvance}
+                  disabled={!assist.chainExplorer}
+                  onChange={(e) =>
+                    setAssist({
+                      ...assist,
+                      chainAutoAdvance: e.target.checked,
+                    })
+                  }
+                />
+                一意候補を自動連鎖
+              </label>
             </div>
           )}
         </div>
@@ -380,6 +432,24 @@ export function FormulaGame({
                 onClick={() => setState(addNotes(puzzle, state))}
               >
                 選択マスへ候補
+              </button>
+              <button
+                className="button secondary"
+                disabled={
+                  state.selected === null ||
+                  !state.numberNotes[state.selected]?.length
+                }
+                onClick={() => {
+                  if (state.selected === null) return;
+                  const numberNotes = state.numberNotes.map((notes) => [
+                    ...notes,
+                  ]);
+                  numberNotes[state.selected] = [];
+                  setState({ ...state, numberNotes });
+                  setMessage("選択マスの候補メモを消去しました。");
+                }}
+              >
+                候補メモを消去
               </button>
               <button
                 className="button secondary"
@@ -405,13 +475,40 @@ export function FormulaGame({
             </div>
           </section>
         )}
-        <FormulaVerification
-          puzzle={puzzle}
-          state={state}
-          setState={setState}
-          setMessage={setMessage}
-          onExpressionChange={setVerificationExpressionId}
-        />
+        <div className="formula-organization-level actions" aria-label="整理レベル">
+          <button
+            className={`button secondary ${organizationLevel === 1 ? "active" : ""}`}
+            onClick={() => setOrganizationLevel(1)}
+          >
+            整理レベル1：検算過程
+          </button>
+          {assist.chainExplorer && (
+            <button
+              className={`button secondary ${organizationLevel === 2 ? "active" : ""}`}
+              onClick={() => setOrganizationLevel(2)}
+            >
+              整理レベル2：成立式連鎖
+            </button>
+          )}
+        </div>
+        {organizationLevel === 1 && (
+          <FormulaVerification
+            puzzle={puzzle}
+            state={state}
+            setState={setState}
+            setMessage={setMessage}
+            onExpressionChange={setVerificationExpressionId}
+          />
+        )}
+        {assist.chainExplorer && organizationLevel === 2 && (
+          <FormulaChainExplorer
+            puzzle={puzzle}
+            state={state}
+            setState={setState}
+            setMessage={setMessage}
+            autoAdvance={assist.chainAutoAdvance}
+          />
+        )}
         {state.hypothesis && !verificationExpressionId && (
           <section className="hypothesis-panel">
             <div className="hypothesis-summary">

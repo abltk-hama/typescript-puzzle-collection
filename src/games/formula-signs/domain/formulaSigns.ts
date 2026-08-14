@@ -264,9 +264,11 @@ export function enterValue(
     typeof value === "number" &&
     !puzzle.numberGivens[index]
   ) {
-    const numbers = [...state.numbers];
+    const numbers = [...state.numbers],
+      numberNotes = state.numberNotes.map((notes) => [...notes]);
     numbers[index] = value;
-    return { ...state, numbers };
+    numberNotes[index] = [];
+    return { ...state, numbers, numberNotes };
   }
   if (
     puzzle.cells[index] === "operator" &&
@@ -278,6 +280,28 @@ export function enterValue(
     return { ...state, operators };
   }
   return state;
+}
+export function toggleNumberNote(
+  puzzle: FormulaPuzzle,
+  state: FormulaState,
+  value: number,
+) {
+  const index = state.selected;
+  if (
+    index === null ||
+    state.hypothesis ||
+    puzzle.cells[index] !== "number" ||
+    puzzle.numberGivens[index] ||
+    state.numbers[index] ||
+    state.hinted.includes(index)
+  )
+    return state;
+  const numberNotes = state.numberNotes.map((notes) => [...notes]),
+    notes = numberNotes[index];
+  numberNotes[index] = notes.includes(value)
+    ? notes.filter((candidate) => candidate !== value)
+    : [...notes, value].sort((a, b) => a - b);
+  return { ...state, numberNotes };
 }
 export function clearValue(puzzle: FormulaPuzzle, state: FormulaState) {
   const index = state.selected;

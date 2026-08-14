@@ -4,6 +4,7 @@ import {
   evaluateExpression,
   initialFormula,
   isComplete,
+  toggleNumberNote,
 } from "../domain/formulaSigns";
 import { countSolutions } from "../domain/solver";
 import { generateFormulaSigns } from "../generation/generate";
@@ -82,5 +83,16 @@ describe("formula signs", () => {
     expect(
       calculationBasis(cells, 260, numbers, [null, null, null, "+", null, "*", null]),
     ).toMatchObject({ target: 188, cells: [0, 1, 2] });
+  });
+  it("toggles manual number candidate notes on a blank challenge cell", () => {
+    const puzzle = generateFormulaSigns(5678, "challenge", 7),
+      blank = puzzle.cells.findIndex(
+        (kind, index) => kind === "number" && !puzzle.numberGivens[index],
+      ),
+      selected = { ...initialFormula(puzzle), selected: blank },
+      added = toggleNumberNote(puzzle, selected, 4),
+      removed = toggleNumberNote(puzzle, added, 4);
+    expect(added.numberNotes[blank]).toEqual([4]);
+    expect(removed.numberNotes[blank]).toEqual([]);
   });
 });

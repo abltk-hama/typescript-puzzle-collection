@@ -1896,6 +1896,80 @@ select {
 .verification-apply small {
   width: 100%;
 }
+.chain-explorer {
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid #a78bfa;
+  border-radius: 12px;
+  background: #faf5ff;
+}
+.formula-organization-level {
+  justify-content: center;
+  margin: 14px 0 6px;
+}
+.formula-organization-level .active {
+  outline: 3px solid #7c3aed;
+  background: #f3e8ff;
+}
+.chain-explorer header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+.chain-explorer h2,
+.chain-explorer h3,
+.chain-explorer p {
+  margin-top: 0;
+}
+.chain-auto-state {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #ede9fe;
+  color: #5b21b6;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.chain-candidates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 7px;
+  max-height: 22rem;
+  overflow: auto;
+  margin: 10px 0;
+}
+.chain-candidates > button {
+  display: grid;
+  gap: 4px;
+  padding: 9px;
+  border: 1px solid #c4b5fd;
+  border-radius: 8px;
+  background: #fff;
+  color: #172033;
+  text-align: left;
+}
+.chain-candidates > button.active {
+  outline: 3px solid #7c3aed;
+  background: #f3e8ff;
+}
+.formula-calculator {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 2px solid #7c3aed;
+  border-radius: 10px;
+  background: #fff;
+}
+.formula-calculator output {
+  padding: 10px;
+  border-radius: 7px;
+  background: #172033;
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 900;
+  text-align: center;
+}
 .formula-card + .game-card {
   margin-top: 0;
 }
@@ -1934,6 +2008,12 @@ select {
   }
   .verification-panel header .actions {
     margin-top: 8px;
+  }
+  .chain-explorer header {
+    display: grid;
+  }
+  .chain-auto-state {
+    white-space: normal;
   }
   .verification-table {
     font-size: 0.8rem;
