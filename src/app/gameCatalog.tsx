@@ -32,6 +32,10 @@ import { loadBundledPuzzles as loadKakuro } from "../games/kakuro/data/puzzles";
 import type { KakuroPuzzle } from "../games/kakuro/domain/kakuro";
 import { KakuroGame } from "../games/kakuro/ui/KakuroGame";
 import { KakuroSetup } from "../games/kakuro/ui/KakuroSetup";
+import { loadBundledPuzzles as loadFormulaSigns } from "../games/formula-signs/data/puzzles";
+import type { FormulaPuzzle } from "../games/formula-signs/domain/formulaSigns";
+import { FormulaGame } from "../games/formula-signs/ui/FormulaGame";
+import { FormulaSetup } from "../games/formula-signs/ui/FormulaSetup";
 
 export type GameId =
   | "lights_out"
@@ -41,7 +45,8 @@ export type GameId =
   | "sudoku"
   | "nonogram"
   | "skyscraper"
-  | "kakuro";
+  | "kakuro"
+  | "formula_signs";
 export interface GameRegistration {
   id: GameId;
   displayName: string;
@@ -155,6 +160,16 @@ export const gameCatalog: readonly GameRegistration[] = [
     loadPuzzles: loadKakuro,
     Setup: KakuroSetup,
     Game: KakuroGame,
+  }),
+  register<FormulaPuzzle>({
+    id: "formula_signs",
+    displayName: "数式符号パズル",
+    description: "数字の間へ演算記号を入れよう",
+    icon: "×",
+    cardClass: "formula-card",
+    loadPuzzles: loadFormulaSigns,
+    Setup: FormulaSetup,
+    Game: FormulaGame,
   }),
 ];
 export function findGame(id: GameId | null) {

@@ -1629,6 +1629,140 @@ select {
   background: #f3e8ff;
   color: #6b21a8;
 }
+.formula-card .game-icon {
+  background: #ffedd5;
+  color: #9a3412;
+}
+.formula-play {
+  display: flex;
+  justify-content: center;
+  gap: 1.2rem;
+  align-items: start;
+  margin: 1rem 0;
+}
+.formula-keypads {
+  display: grid;
+  gap: 0.65rem;
+  width: 11rem;
+}
+.operator-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+}
+.operator-keypad button,
+.number-keypad button {
+  min-height: 3rem;
+  border: 1px solid #c2410c;
+  border-radius: 9px;
+  background: #ffedd5;
+  color: #7c2d12;
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+.number-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+}
+.formula-board {
+  --formula-cell: min(9vw, 4.15rem);
+  --formula-target: 5rem;
+  display: grid;
+  gap: 2px;
+  align-items: center;
+  justify-items: center;
+}
+.formula-board > span,
+.formula-board > button {
+  width: var(--formula-cell);
+  height: var(--formula-cell);
+}
+.formula-block {
+  background: #1e293b;
+  border-radius: 5px;
+}
+.formula-cell {
+  padding: 0;
+  border: 2px solid #94a3b8;
+  border-radius: 7px;
+  background: #fff;
+  color: #172033;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+.formula-cell.operator {
+  border-style: dashed;
+  background: #fff7ed;
+  color: #9a3412;
+}
+.formula-cell.selected {
+  outline: 4px solid #0284c7;
+  outline-offset: 1px;
+}
+.formula-cell.expression-highlight {
+  background: #e0f2fe;
+}
+.formula-cell.hypothesis-line {
+  box-shadow: inset 0 0 0 4px #7c3aed;
+}
+.formula-cell.hypothetical {
+  color: #7c3aed;
+}
+.formula-cell.hinted {
+  background: #ccfbf1;
+}
+.formula-notes {
+  font-size: 0.58rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.formula-target {
+  width: var(--formula-target) !important;
+  height: auto !important;
+  min-height: 2.5rem;
+  padding: 0.3rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #172033;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+.formula-target.active {
+  background: #f3e8ff;
+  outline: 3px solid #7c3aed;
+}
+.formula-card + .game-card {
+  margin-top: 0;
+}
+@media (max-width: 650px) {
+  .formula-play {
+    flex-direction: column;
+    align-items: center;
+  }
+  .formula-keypads {
+    order: 0;
+    width: min(100%, 15rem);
+  }
+  .formula-board {
+    --formula-cell: min(12vw, 3.4rem);
+    --formula-target: 3.7rem;
+    max-width: 100%;
+  }
+  .formula-board.size-7 {
+    --formula-cell: min(3.4rem, calc((100vw - 6.2rem) / 7));
+  }
+  .formula-board .formula-target {
+    font-size: 0.68rem;
+  }
+  .formula-cell {
+    font-size: 1rem;
+  }
+  .formula-block {
+    border-radius: 3px;
+  }
+}
 .kakuro-play {
   display: flex;
   gap: 1.25rem;
