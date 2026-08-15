@@ -1,0 +1,5 @@
+import {useState} from "react";
+import {LauncherFooter} from "../../../common/components/GameChrome";
+import type {SlitherlinkPuzzle} from "../domain/slitherlink";
+const labels={easy:"やさしい",medium:"ふつう",hard:"むずかしい"};
+export function SlitherlinkSetup({puzzles,onStart,onLauncher}:{puzzles:SlitherlinkPuzzle[];onStart:(p:SlitherlinkPuzzle)=>void;onLauncher:()=>void}){const[difficulty,setDifficulty]=useState<keyof typeof labels>("easy"),choices=puzzles.filter(p=>p.difficulty===difficulty);return <main className="shell"><section className="panel"><div className="toolbar"><h1>スリザーリンク</h1><span>数字を手がかりに一本のループを作ります</span></div><article className="setup-card"><label>難易度<select value={difficulty} onChange={e=>setDifficulty(e.target.value as keyof typeof labels)}>{Object.entries(labels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label><div className="actions">{choices.map(p=><button className="button" key={p.id} onClick={()=>onStart(p)}>{p.title}</button>)}</div>{!choices.length&&<p>この難易度の同梱問題は準備中です。</p>}</article><LauncherFooter onLauncher={onLauncher}/></section></main>}

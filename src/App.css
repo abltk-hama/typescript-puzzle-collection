@@ -1973,7 +1973,124 @@ select {
 .formula-card + .game-card {
   margin-top: 0;
 }
+.slither-card {
+  border-left-color: #0f766e;
+}
+.slither-board {
+  --slither-point: 0.9rem;
+  --slither-cell: min(12vw, 4rem);
+  display: grid;
+  justify-content: center;
+  align-items: stretch;
+  margin: 1rem auto;
+  touch-action: manipulation;
+}
+.slither-board button {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+.slither-point {
+  position: relative;
+  z-index: 3;
+  background: transparent;
+}
+.slither-point::after {
+  content: "";
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  background: #172033;
+}
+.slither-point:disabled {
+  opacity: 1;
+}
+.slither-point.selected::after {
+  inset: 5%;
+  background: #dc2626;
+  box-shadow: 0 0 0 3px #fecaca;
+}
+.slither-edge {
+  position: relative;
+  background: transparent;
+  color: #b91c1c;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+.slither-edge::before {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  background: transparent;
+}
+.slither-edge.horizontal::before {
+  inset: calc(50% - 2px) 0;
+}
+.slither-edge.vertical::before {
+  inset: 0 calc(50% - 2px);
+}
+.slither-edge.line::before {
+  background: #0f172a;
+}
+.slither-edge.preview::before {
+  background: #8b5cf6;
+  opacity: 0.55;
+}
+.slither-edge.cross {
+  background: #fff7ed;
+}
+.slither-edge.hinted {
+  background: #ccfbf1;
+}
+.slither-edge.selected {
+  outline: 2px solid #0284c7;
+  outline-offset: -1px;
+}
+.slither-clue {
+  display: grid;
+  place-content: center;
+  gap: 1px;
+  background: #fff;
+  color: #172033;
+}
+.slither-clue strong {
+  font-size: 1.25rem;
+}
+.slither-clue small {
+  color: #475569;
+  font-size: 0.68rem;
+}
+.slither-clue.selected {
+  background: #e0f2fe;
+  outline: 3px solid #0284c7;
+}
+.slither-clue.complete {
+  background: #ecfdf5;
+}
+.slither-clue.contradiction {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.slither-actions,
+.route-panel {
+  margin: 12px 0;
+}
+.route-panel {
+  padding: 12px;
+  border: 1px solid #fca5a5;
+  border-radius: 12px;
+  background: #fff7ed;
+}
+.route-panel h2 {
+  margin-top: 0;
+}
 @media (max-width: 650px) {
+  .slither-board {
+    --slither-point: 0.75rem;
+    --slither-cell: min(15vw, 3.3rem);
+  }
   .formula-play {
     flex-direction: column;
     align-items: center;

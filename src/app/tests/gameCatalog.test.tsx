@@ -17,6 +17,7 @@ describe("game catalog", () => {
       "skyscraper",
       "kakuro",
       "formula_signs",
+      "slitherlink",
     ]);
     expect(new Set(gameCatalog.map((game) => game.id)).size).toBe(
       gameCatalog.length,

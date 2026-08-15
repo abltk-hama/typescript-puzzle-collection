@@ -36,6 +36,10 @@ import { loadBundledPuzzles as loadFormulaSigns } from "../games/formula-signs/d
 import type { FormulaPuzzle } from "../games/formula-signs/domain/formulaSigns";
 import { FormulaGame } from "../games/formula-signs/ui/FormulaGame";
 import { FormulaSetup } from "../games/formula-signs/ui/FormulaSetup";
+import { loadBundledPuzzles as loadSlitherlink } from "../games/slitherlink/data/puzzles";
+import type { SlitherlinkPuzzle } from "../games/slitherlink/domain/slitherlink";
+import { SlitherlinkGame } from "../games/slitherlink/ui/SlitherlinkGame";
+import { SlitherlinkSetup } from "../games/slitherlink/ui/SlitherlinkSetup";
 
 export type GameId =
   | "lights_out"
@@ -46,7 +50,8 @@ export type GameId =
   | "nonogram"
   | "skyscraper"
   | "kakuro"
-  | "formula_signs";
+  | "formula_signs"
+  | "slitherlink";
 export interface GameRegistration {
   id: GameId;
   displayName: string;
@@ -170,6 +175,16 @@ export const gameCatalog: readonly GameRegistration[] = [
     loadPuzzles: loadFormulaSigns,
     Setup: FormulaSetup,
     Game: FormulaGame,
+  }),
+  register<SlitherlinkPuzzle>({
+    id: "slitherlink",
+    displayName: "スリザーリンク",
+    description: "数字を手がかりに一本のループを作ろう",
+    icon: "◯",
+    cardClass: "slither-card",
+    loadPuzzles: loadSlitherlink,
+    Setup: SlitherlinkSetup,
+    Game: SlitherlinkGame,
   }),
 ];
 export function findGame(id: GameId | null) {
