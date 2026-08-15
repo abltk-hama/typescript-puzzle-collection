@@ -1,21 +1,471 @@
-import {useEffect,useMemo,useRef,useState} from "react";
-import {GameFooter,MessagePanel} from "../../../common/components/GameChrome";
-import {loadAssistSettings,saveAssistSettings} from "../../../common/storage/gameAssistSettings";
-import {deleteSlitherlinkSession,loadSlitherlinkSession,saveSlitherlinkSession} from "../data/sessions";
-import {allEdges,applyCandidate,applyRoute,clueStatus,contradictions,cycleEdge,horizontalEdge,initialSlitherlink,isComplete,revealUnusedEdge,routeCandidates,surroundingCandidates,verticalEdge,type EdgeStatus,type SlitherlinkPuzzle,type SlitherlinkState} from "../domain/slitherlink";
-type Phase="loading"|"ask"|"play";
-interface Assist{lineCounts:boolean;surrounding:boolean;candidateLogic:boolean;routeInput:boolean;routeLogic:boolean}
-const defaults:Assist={lineCounts:true,surrounding:true,candidateLogic:true,routeInput:true,routeLogic:false};
-export function SlitherlinkGame({puzzle,onBack,onLauncher}:{puzzle:SlitherlinkPuzzle;onBack:()=>void;onLauncher:()=>void}){
-  const[state,setState]=useState(()=>initialSlitherlink(puzzle)),[phase,setPhase]=useState<Phase>("loading"),[message,setMessage]=useState("辺をタップして、線・×・未確定を切り替えます。"),[settings,setSettings]=useState(false),[assist,setAssist]=useState(()=>loadAssistSettings("slitherlink",defaults)),[candidateIndex,setCandidateIndex]=useState(0),[routeMode,setRouteMode]=useState(false),[vertices,setVertices]=useState<string[]>([]),[routeIndex,setRouteIndex]=useState(0),[selectedEdge,setSelectedEdge]=useState<string|null>(null),[history,setHistory]=useState<SlitherlinkState[]>([]),saved=useRef<SlitherlinkState|undefined>(undefined),complete=isComplete(puzzle,state),invalid=contradictions(puzzle,state),candidates=state.selectedCell===null?[]:surroundingCandidates(puzzle,state,state.selectedCell,assist.candidateLogic),candidate=candidates.length?candidates[candidateIndex%candidates.length]:null,routes=useMemo(()=>routeCandidates(puzzle,state,vertices,assist.routeLogic),[puzzle,state,vertices,assist.routeLogic]),route=routes.length?routes[routeIndex%routes.length]:null;
-  useEffect(()=>{loadSlitherlinkSession(puzzle).then(found=>{saved.current=found;setPhase(found?"ask":"play")}).catch(()=>setPhase("play"))},[puzzle]);
-  useEffect(()=>{if(phase!=="play")return;if(complete)deleteSlitherlinkSession(puzzle.id);else if(allEdges(puzzle).some(edge=>state.edges[edge]!=="unknown"))saveSlitherlinkSession(puzzle,state)},[state,phase,complete,puzzle]);
-  useEffect(()=>saveAssistSettings("slitherlink",assist),[assist]);
-  function update(next:SlitherlinkState,text:string){if(next===state)return;setHistory([...history,state]);setState(next);setMessage(text)}
-  function chooseCell(index:number){if(state.selectedCell===index&&candidates.length){setCandidateIndex((candidateIndex+1)%candidates.length);setMessage(`周囲候補 ${candidateIndex%candidates.length+1}/${candidates.length} をプレビューしました。`)}else{setState({...state,selectedCell:index});setCandidateIndex(0);setMessage("数字マスを選択しました。もう一度押すと周囲候補を切り替えます。")}}
-  function chooseVertex(vertex:string){if(!routeMode)return;if(vertices.includes(vertex)){setVertices(vertices.slice(0,vertices.indexOf(vertex)+1));setRouteIndex(0);return}if(vertices.length>=5){setMessage("始点・終点を含めて最大5点まで選択できます。");return}setVertices([...vertices,vertex]);setRouteIndex(0);setMessage(vertices.length?"経路の次の点を追加しました。":"経路の始点を選択しました。")}
-  function edgeClass(edge:string,orientation:"horizontal"|"vertical"){const preview=(candidate?.[edge]??(route?.includes(edge)?"line":null)) as EdgeStatus|null,status=state.edges[edge],shown=status==="unknown"&&preview?preview:status;return `slither-edge ${orientation} ${shown} ${status==="unknown"&&preview?"preview":""} ${state.sources[edge]==="hint"?"hinted":""} ${selectedEdge===edge?"selected":""}`}
-  if(phase==="loading")return <main className="shell"><section className="panel">保存状態を確認しています…</section></main>;
-  if(phase==="ask")return <main className="shell"><section className="panel resume-dialog"><h1>保存済みの進捗</h1><div className="actions"><button className="button" onClick={()=>{setState(saved.current!);setPhase("play")}}>続きから</button><button className="button secondary" onClick={()=>{deleteSlitherlinkSession(puzzle.id);setPhase("play")}}>最初から</button><button className="button secondary" onClick={onBack}>キャンセル</button></div></section></main>;
-  const elements=[];for(let gr=0;gr<=puzzle.height*2;gr++)for(let gc=0;gc<=puzzle.width*2;gc++){const style={gridRow:gr+1,gridColumn:gc+1};if(gr%2===0&&gc%2===0){const vertex=`${gr/2}:${gc/2}`;elements.push(<button aria-label={`点 ${gr/2+1}行${gc/2+1}列`} className={`slither-point ${vertices.includes(vertex)?"selected":""}`} disabled={!routeMode} key={`p${vertex}`} onClick={()=>chooseVertex(vertex)} style={style}/>)}else if(gr%2===0){const edge=horizontalEdge(gr/2,(gc-1)/2);elements.push(<button aria-label={`横辺 ${gr/2+1}行${(gc+1)/2}列`} className={edgeClass(edge,"horizontal")} key={edge} onClick={()=>{if(routeMode)return;setSelectedEdge(edge);update(cycleEdge(state,edge),"辺を切り替えました。")}} style={style}>{state.edges[edge]==="cross"||candidate?.[edge]==="cross"?"×":""}</button>)}else if(gc%2===0){const edge=verticalEdge((gr-1)/2,gc/2);elements.push(<button aria-label={`縦辺 ${(gr+1)/2}行${gc/2+1}列`} className={edgeClass(edge,"vertical")} key={edge} onClick={()=>{if(routeMode)return;setSelectedEdge(edge);update(cycleEdge(state,edge),"辺を切り替えました。")}} style={style}>{state.edges[edge]==="cross"||candidate?.[edge]==="cross"?"×":""}</button>)}else{const index=(gr-1)/2*puzzle.width+(gc-1)/2,clue=puzzle.clues[index],status=clueStatus(puzzle,state,index);elements.push(<button aria-label={`${(gr+1)/2}行${(gc+1)/2}列 数字 ${clue??"なし"}`} className={`slither-clue ${state.selectedCell===index?"selected":""} ${status?.contradiction?"contradiction":""} ${status?.complete?"complete":""}`} disabled={clue===null} key={`c${index}`} onClick={()=>chooseCell(index)} style={style}>{clue!==null&&<><strong>{clue}</strong>{assist.lineCounts&&<small>{status?.lines}/{clue}</small>}</>}</button>)}}
-  return <main className="shell"><section className="panel slither-card"><div className="toolbar"><h1>スリザーリンク</h1><strong>{puzzle.title}</strong></div><div className="stats"><span>ヒント: {state.hintCount}回</span><span>{invalid?"矛盾あり":complete?"完成":"探索中"}</span></div><div className="slither-board" role="grid" style={{gridTemplateColumns:`repeat(${puzzle.width},var(--slither-point) var(--slither-cell)) var(--slither-point)`,gridTemplateRows:`repeat(${puzzle.height},var(--slither-point) var(--slither-cell)) var(--slither-point)`}}>{elements}</div><MessagePanel logKey={`slitherlink:${puzzle.id}`} message={complete?`完成しました！（ヒント使用 ${state.hintCount}回）`:invalid?"現在の線には、数字超過または3分岐の矛盾があります。":message}/><div className="slither-actions actions"><button className="button secondary" disabled={!history.length} onClick={()=>{const items=[...history],previous=items.pop();if(previous){setState(previous);setHistory(items);setMessage("1手戻しました。")}}}>1手戻す</button>{assist.surrounding&&<button className="button secondary" disabled={!candidate} onClick={()=>candidate&&update(applyCandidate(state,candidate),"周囲候補を採用しました。")}>周囲候補 {candidates.length?`${candidateIndex%candidates.length+1}/${candidates.length}`:"なし"} を採用</button>}<button className="button" onClick={()=>{const next=revealUnusedEdge(puzzle,state,selectedEdge);if(next===state)setMessage("選択した辺は正解ループに必要なため除外できません。");else update(next,"不要な辺を1本×にしました（ヒント1回）。")}}>不要辺を1本除外</button></div>{assist.routeInput&&<section className="route-panel"><h2>経路入力</h2><div className="actions"><button className={`button secondary ${routeMode?"active":""}`} onClick={()=>{setRouteMode(!routeMode);setVertices([]);setRouteIndex(0)}}>経路入力 {routeMode?"ON":"OFF"}</button><button className="button secondary" disabled={routes.length<2} onClick={()=>setRouteIndex((routeIndex+1)%routes.length)}>候補を切替 {routes.length?`${routeIndex%routes.length+1}/${routes.length}`:"0/0"}</button><button className="button" disabled={!route} onClick={()=>route&&update(applyRoute(state,route),"選択した最短経路を線として採用しました。")}>経路を採用</button><button className="button secondary" onClick={()=>{setVertices([]);setRouteIndex(0)}}>点をクリア</button></div><p>始点・終点と中継点最大3点を選択します。×の辺を避けた最短経路を最大8件表示します。</p></section>}<div className="assist-settings"><button className="button secondary" onClick={()=>setSettings(!settings)}>補助設定を{settings?"閉じる":"開く"}</button>{settings&&<div className="assist-settings-panel">{([["lineCounts","数字周囲の線数表示"],["surrounding","数字周囲の組み合わせ候補"],["candidateLogic","周囲候補の数字超過・3分岐除外"],["routeInput","経路入力"],["routeLogic","経路候補の数字超過・3分岐除外"]] as [keyof Assist,string][]).map(([key,label])=><label key={key}><input type="checkbox" checked={assist[key]} onChange={e=>setAssist({...assist,[key]:e.target.checked})}/>{label}</label>)}</div>}</div><GameFooter onBack={onBack} onLauncher={onLauncher}/></section></main>}
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  GameFooter,
+  MessagePanel,
+} from "../../../common/components/GameChrome";
+import {
+  loadAssistSettings,
+  saveAssistSettings,
+} from "../../../common/storage/gameAssistSettings";
+import {
+  deleteSlitherlinkSession,
+  loadSlitherlinkSession,
+  saveSlitherlinkSession,
+} from "../data/sessions";
+import {
+  allEdges,
+  applyCandidate,
+  applyRoute,
+  clueStatus,
+  contradictions,
+  cycleEdge,
+  horizontalEdge,
+  initialSlitherlink,
+  isComplete,
+  revealUnusedEdge,
+  routeCandidates,
+  surroundingCandidates,
+  verticalEdge,
+  type EdgeStatus,
+  type SlitherlinkPuzzle,
+  type SlitherlinkState,
+} from "../domain/slitherlink";
+type Phase = "loading" | "ask" | "play";
+interface Assist {
+  lineCounts: boolean;
+  surrounding: boolean;
+  candidateLogic: boolean;
+  routeInput: boolean;
+  routeLogic: boolean;
+}
+const defaults: Assist = {
+  lineCounts: true,
+  surrounding: true,
+  candidateLogic: true,
+  routeInput: true,
+  routeLogic: false,
+};
+export function SlitherlinkGame({
+  puzzle,
+  onBack,
+  onLauncher,
+}: {
+  puzzle: SlitherlinkPuzzle;
+  onBack: () => void;
+  onLauncher: () => void;
+}) {
+  const [state, setState] = useState(() => initialSlitherlink(puzzle)),
+    [phase, setPhase] = useState<Phase>("loading"),
+    [message, setMessage] = useState(
+      "辺をタップして、線・×・未確定を切り替えます。",
+    ),
+    [settings, setSettings] = useState(false),
+    [assist, setAssist] = useState(() =>
+      loadAssistSettings("slitherlink", defaults),
+    ),
+    [candidateIndex, setCandidateIndex] = useState(0),
+    [routeMode, setRouteMode] = useState(false),
+    [vertices, setVertices] = useState<string[]>([]),
+    [routeIndex, setRouteIndex] = useState(0),
+    [selectedEdge, setSelectedEdge] = useState<string | null>(null),
+    [history, setHistory] = useState<SlitherlinkState[]>([]),
+    saved = useRef<SlitherlinkState | undefined>(undefined),
+    complete = isComplete(puzzle, state),
+    invalid = contradictions(puzzle, state),
+    candidates =
+      state.selectedCell === null
+        ? []
+        : surroundingCandidates(
+            puzzle,
+            state,
+            state.selectedCell,
+            assist.candidateLogic,
+          ),
+    candidate = candidates.length
+      ? candidates[candidateIndex % candidates.length]
+      : null,
+    routes = useMemo(
+      () => routeCandidates(puzzle, state, vertices, assist.routeLogic),
+      [puzzle, state, vertices, assist.routeLogic],
+    ),
+    route = routes.length ? routes[routeIndex % routes.length] : null;
+  useEffect(() => {
+    loadSlitherlinkSession(puzzle)
+      .then((found) => {
+        saved.current = found;
+        setPhase(found ? "ask" : "play");
+      })
+      .catch(() => setPhase("play"));
+  }, [puzzle]);
+  useEffect(() => {
+    if (phase !== "play") return;
+    if (complete) deleteSlitherlinkSession(puzzle.id);
+    else if (allEdges(puzzle).some((edge) => state.edges[edge] !== "unknown"))
+      saveSlitherlinkSession(puzzle, state);
+  }, [state, phase, complete, puzzle]);
+  useEffect(() => saveAssistSettings("slitherlink", assist), [assist]);
+  function update(next: SlitherlinkState, text: string) {
+    if (next === state) return;
+    setHistory([...history, state]);
+    setState(next);
+    setMessage(text);
+  }
+  function chooseCell(index: number) {
+    if (state.selectedCell === index && candidates.length) {
+      setCandidateIndex((candidateIndex + 1) % candidates.length);
+      setMessage(
+        `周囲候補 ${((candidateIndex + 1) % candidates.length) + 1}/${candidates.length} をプレビューしました。`,
+      );
+    } else {
+      setState({ ...state, selectedCell: index });
+      setCandidateIndex(0);
+      setMessage(
+        "数字マスを選択しました。もう一度押すと周囲候補を切り替えます。",
+      );
+    }
+  }
+  function clearCandidate() {
+    setState({ ...state, selectedCell: null });
+    setCandidateIndex(0);
+    setMessage("周囲候補のプレビューと数字マス選択を解除しました。");
+  }
+  function resetBoard() {
+    if (!window.confirm("現在の進行状況をすべてリセットしますか？")) return;
+    const fresh = initialSlitherlink(puzzle);
+    setState(fresh);
+    setHistory([]);
+    setCandidateIndex(0);
+    setVertices([]);
+    setRouteIndex(0);
+    setRouteMode(false);
+    setSelectedEdge(null);
+    deleteSlitherlinkSession(puzzle.id);
+    setMessage("盤面を最初の状態へリセットしました。");
+  }
+  function chooseVertex(vertex: string) {
+    if (!routeMode) return;
+    if (vertices.includes(vertex)) {
+      setVertices(vertices.slice(0, vertices.indexOf(vertex) + 1));
+      setRouteIndex(0);
+      return;
+    }
+    if (vertices.length >= 5) {
+      setMessage("始点・終点を含めて最大5点まで選択できます。");
+      return;
+    }
+    setVertices([...vertices, vertex]);
+    setRouteIndex(0);
+    setMessage(
+      vertices.length
+        ? "経路の次の点を追加しました。"
+        : "経路の始点を選択しました。",
+    );
+  }
+  function edgeClass(edge: string, orientation: "horizontal" | "vertical") {
+    const preview = (candidate?.[edge] ??
+        (route?.includes(edge) ? "line" : null)) as EdgeStatus | null,
+      status = state.edges[edge],
+      shown = status === "unknown" && preview ? preview : status;
+    return `slither-edge ${orientation} ${shown} ${status === "unknown" && preview ? "preview" : ""} ${state.sources[edge] === "hint" ? "hinted" : ""} ${selectedEdge === edge ? "selected" : ""}`;
+  }
+  if (phase === "loading")
+    return (
+      <main className="shell">
+        <section className="panel">保存状態を確認しています…</section>
+      </main>
+    );
+  if (phase === "ask")
+    return (
+      <main className="shell">
+        <section className="panel resume-dialog">
+          <h1>保存済みの進捗</h1>
+          <div className="actions">
+            <button
+              className="button"
+              onClick={() => {
+                setState(saved.current!);
+                setPhase("play");
+              }}
+            >
+              続きから
+            </button>
+            <button
+              className="button secondary"
+              onClick={() => {
+                deleteSlitherlinkSession(puzzle.id);
+                setPhase("play");
+              }}
+            >
+              最初から
+            </button>
+            <button className="button secondary" onClick={onBack}>
+              キャンセル
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  const elements = [];
+  for (let gr = 0; gr <= puzzle.height * 2; gr++)
+    for (let gc = 0; gc <= puzzle.width * 2; gc++) {
+      const style = { gridRow: gr + 1, gridColumn: gc + 1 };
+      if (gr % 2 === 0 && gc % 2 === 0) {
+        const vertex = `${gr / 2}:${gc / 2}`;
+        elements.push(
+          <button
+            aria-label={`点 ${gr / 2 + 1}行${gc / 2 + 1}列`}
+            className={`slither-point ${vertices.includes(vertex) ? "selected" : ""}`}
+            disabled={!routeMode}
+            key={`p${vertex}`}
+            onClick={() => chooseVertex(vertex)}
+            style={style}
+          />,
+        );
+      } else if (gr % 2 === 0) {
+        const edge = horizontalEdge(gr / 2, (gc - 1) / 2);
+        elements.push(
+          <button
+            aria-label={`横辺 ${gr / 2 + 1}行${(gc + 1) / 2}列`}
+            className={edgeClass(edge, "horizontal")}
+            key={edge}
+            onClick={() => {
+              if (routeMode) return;
+              setSelectedEdge(edge);
+              update(cycleEdge(state, edge), "辺を切り替えました。");
+            }}
+            style={style}
+          >
+            {state.edges[edge] === "cross" || candidate?.[edge] === "cross"
+              ? "×"
+              : ""}
+          </button>,
+        );
+      } else if (gc % 2 === 0) {
+        const edge = verticalEdge((gr - 1) / 2, gc / 2);
+        elements.push(
+          <button
+            aria-label={`縦辺 ${(gr + 1) / 2}行${gc / 2 + 1}列`}
+            className={edgeClass(edge, "vertical")}
+            key={edge}
+            onClick={() => {
+              if (routeMode) return;
+              setSelectedEdge(edge);
+              update(cycleEdge(state, edge), "辺を切り替えました。");
+            }}
+            style={style}
+          >
+            {state.edges[edge] === "cross" || candidate?.[edge] === "cross"
+              ? "×"
+              : ""}
+          </button>,
+        );
+      } else {
+        const index = ((gr - 1) / 2) * puzzle.width + (gc - 1) / 2,
+          clue = puzzle.clues[index],
+          status = clueStatus(puzzle, state, index);
+        elements.push(
+          <button
+            aria-label={`${(gr + 1) / 2}行${(gc + 1) / 2}列 数字 ${clue ?? "なし"}`}
+            className={`slither-clue ${state.selectedCell === index ? "selected" : ""} ${status?.contradiction ? "contradiction" : ""} ${status?.complete ? "complete" : ""}`}
+            disabled={clue === null}
+            key={`c${index}`}
+            onClick={() => chooseCell(index)}
+            style={style}
+          >
+            {clue !== null && (
+              <>
+                <strong>{clue}</strong>
+                {assist.lineCounts && (
+                  <small>
+                    {status?.lines}/{clue}
+                  </small>
+                )}
+              </>
+            )}
+          </button>,
+        );
+      }
+    }
+  return (
+    <main className="shell">
+      <section className="panel slither-card">
+        <div className="toolbar">
+          <h1>スリザーリンク</h1>
+          <strong>{puzzle.title}</strong>
+        </div>
+        <div className="stats">
+          <span>ヒント: {state.hintCount}回</span>
+          <span>{invalid ? "矛盾あり" : complete ? "完成" : "探索中"}</span>
+        </div>
+        <div
+          className={`slither-board size-${puzzle.width}`}
+          role="grid"
+          style={{
+            gridTemplateColumns: `repeat(${puzzle.width},var(--slither-point) var(--slither-cell)) var(--slither-point)`,
+            gridTemplateRows: `repeat(${puzzle.height},var(--slither-point) var(--slither-cell)) var(--slither-point)`,
+          }}
+        >
+          {elements}
+        </div>
+        <MessagePanel
+          logKey={`slitherlink:${puzzle.id}`}
+          message={
+            complete
+              ? `完成しました！（ヒント使用 ${state.hintCount}回）`
+              : invalid
+                ? "現在の線には、数字超過または3分岐の矛盾があります。"
+                : message
+          }
+        />
+        <div className="slither-actions actions">
+          <button
+            className="button secondary"
+            disabled={!history.length}
+            onClick={() => {
+              const items = [...history],
+                previous = items.pop();
+              if (previous) {
+                setState(previous);
+                setHistory(items);
+                setMessage("1手戻しました。");
+              }
+            }}
+          >
+            1手戻す
+          </button>
+          {assist.surrounding && (
+            <>
+              <button
+                className="button secondary"
+                disabled={!candidate}
+                onClick={() => {
+                  if (!candidate) return;
+                  const next = applyCandidate(state, candidate);
+                  update(
+                    { ...next, selectedCell: null },
+                    "周囲候補を採用しました。",
+                  );
+                  setCandidateIndex(0);
+                }}
+              >
+                周囲候補{" "}
+                {candidates.length
+                  ? `${(candidateIndex % candidates.length) + 1}/${candidates.length}`
+                  : "なし"}{" "}
+                を採用
+              </button>
+              <button
+                className="button secondary"
+                disabled={state.selectedCell === null}
+                onClick={clearCandidate}
+              >
+                組み合わせ候補を解除
+              </button>
+            </>
+          )}
+          <button
+            className="button"
+            onClick={() => {
+              const next = revealUnusedEdge(puzzle, state, selectedEdge);
+              if (next === state)
+                setMessage(
+                  "選択した辺は正解ループに必要なため除外できません。",
+                );
+              else update(next, "不要な辺を1本×にしました（ヒント1回）。");
+            }}
+          >
+            不要辺を1本除外
+          </button>
+          <button className="button secondary" onClick={resetBoard}>
+            盤面をリセット
+          </button>
+        </div>
+        {assist.routeInput && (
+          <section className="route-panel">
+            <h2>経路入力</h2>
+            <div className="actions">
+              <button
+                className={`button secondary ${routeMode ? "active" : ""}`}
+                onClick={() => {
+                  setRouteMode(!routeMode);
+                  setVertices([]);
+                  setRouteIndex(0);
+                }}
+              >
+                経路入力 {routeMode ? "ON" : "OFF"}
+              </button>
+              <button
+                className="button secondary"
+                disabled={routes.length < 2}
+                onClick={() => setRouteIndex((routeIndex + 1) % routes.length)}
+              >
+                候補を切替{" "}
+                {routes.length
+                  ? `${(routeIndex % routes.length) + 1}/${routes.length}`
+                  : "0/0"}
+              </button>
+              <button
+                className="button"
+                disabled={!route}
+                onClick={() =>
+                  route &&
+                  update(
+                    applyRoute(state, route),
+                    "選択した最短経路を線として採用しました。",
+                  )
+                }
+              >
+                経路を採用
+              </button>
+              <button
+                className="button secondary"
+                onClick={() => {
+                  setVertices([]);
+                  setRouteIndex(0);
+                }}
+              >
+                点をクリア
+              </button>
+            </div>
+            <p>
+              始点・終点と中継点最大3点を選択します。×の辺を避けた最短経路を最大8件表示します。
+            </p>
+          </section>
+        )}
+        <div className="assist-settings">
+          <button
+            className="button secondary"
+            onClick={() => setSettings(!settings)}
+          >
+            補助設定を{settings ? "閉じる" : "開く"}
+          </button>
+          {settings && (
+            <div className="assist-settings-panel">
+              {(
+                [
+                  ["lineCounts", "数字周囲の線数表示"],
+                  ["surrounding", "数字周囲の組み合わせ候補"],
+                  ["candidateLogic", "周囲候補の数字超過・3分岐除外"],
+                  ["routeInput", "経路入力"],
+                  ["routeLogic", "経路候補の数字超過・3分岐除外"],
+                ] as [keyof Assist, string][]
+              ).map(([key, label]) => (
+                <label key={key}>
+                  <input
+                    type="checkbox"
+                    checked={assist[key]}
+                    onChange={(e) =>
+                      setAssist({ ...assist, [key]: e.target.checked })
+                    }
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+        <GameFooter onBack={onBack} onLauncher={onLauncher} />
+      </section>
+    </main>
+  );
+}
