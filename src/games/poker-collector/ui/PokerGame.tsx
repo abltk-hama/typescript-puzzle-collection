@@ -29,6 +29,7 @@ import type {
   PokerCollectorState,
 } from "../domain/pokerHandTypes";
 import { RoleConfirmDialog } from "./RoleConfirmDialog";
+import { RoleListDialog } from "./RoleListDialog";
 
 type Phase = "loading" | "ask" | "play";
 
@@ -50,6 +51,7 @@ export function PokerGame({
   const [planningGroups, setPlanningGroups] = useState<number[][]>([[], [], []]);
   const [hintRoleName, setHintRoleName] = useState<string | null>(null);
   const [hintCardIndices, setHintCardIndices] = useState<number[]>([]);
+  const [roleListOpen, setRoleListOpen] = useState(false);
 
   const saved = useRef<PokerCollectorState | undefined>(undefined);
   const complete = isGameComplete(state, puzzle.targetScore);
@@ -405,6 +407,7 @@ export function PokerGame({
             </button>
             <button className="button secondary" onClick={showRoleHint}>役ヒント</button>
             <button className="button secondary" onClick={showCardHint}>カードヒント</button>
+            <button className="button secondary" onClick={() => setRoleListOpen(true)}>役一覧</button>
           </div>
           {(hintRoleName || hintCardIndices.length > 0) && (
             <div className="poker-hint-summary">
@@ -564,6 +567,13 @@ export function PokerGame({
             onDiscard={handleDiscardRole}
           />
         )}
+        {roleListOpen && (
+          <RoleListDialog
+            discardedRoleKeys={state.discardedRoleKeys}
+            fixedRoles={state.fixedRoles}
+            onClose={() => setRoleListOpen(false)}
+          />
+        )}
 
         <MessagePanel message={message} logKey="poker_collector" />
         <GameFooter onBack={onBack} onLauncher={onLauncher} />
@@ -589,7 +599,7 @@ function formatDiscardKey(key: string): string {
     threeOfAKind: "スリーオブアカインド",
     fourCardStraight: "4枚ストレート",
     fourCardFlush: "4枚フラッシュ",
-    skipStraight: "飛び地ストレート",
+    skipStraight: "スキップストレート",
     straight: "ストレート",
     flush: "フラッシュ",
     fullHouse: "フルハウス",

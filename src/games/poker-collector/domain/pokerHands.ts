@@ -22,44 +22,47 @@ export class PokerHandDetector {
   detectAllRoles(
     hand: Card[],
     difficulty: PokerDifficulty,
-    discardedRoleKeys: ReadonlySet<string> = new Set()
+    discardedRoleKeys: ReadonlySet<string> = new Set(),
+    enabledRoleTypes?: ReadonlySet<PokerRoleType>
   ): PokerHand[] {
     const roles: PokerHand[] = [];
+    const enabled = (type: PokerRoleType) =>
+      enabledRoleTypes ? enabledRoleTypes.has(type) : isRoleEnabled(type, difficulty);
 
-    if (isRoleEnabled("onePair", difficulty)) {
+    if (enabled("onePair")) {
       roles.push(...this.detectOnePairs(hand));
     }
-    if (isRoleEnabled("twoPair", difficulty)) {
+    if (enabled("twoPair")) {
       roles.push(...this.detectTwoPairs(hand));
     }
-    if (isRoleEnabled("threeOfAKind", difficulty)) {
+    if (enabled("threeOfAKind")) {
       roles.push(...this.detectThreeOfAKinds(hand));
     }
-    if (isRoleEnabled("fourCardStraight", difficulty)) {
+    if (enabled("fourCardStraight")) {
       roles.push(...this.detectSequences(hand, 4, "fourCardStraight", this.standardPatterns(4)));
     }
-    if (isRoleEnabled("fourCardFlush", difficulty)) {
+    if (enabled("fourCardFlush")) {
       roles.push(...this.detectFlushes(hand, 4, "fourCardFlush"));
     }
-    if (isRoleEnabled("skipStraight", difficulty)) {
+    if (enabled("skipStraight")) {
       roles.push(...this.detectSequences(hand, 5, "skipStraight", this.skipPatterns()));
     }
-    if (isRoleEnabled("straight", difficulty)) {
+    if (enabled("straight")) {
       roles.push(...this.detectSequences(hand, 5, "straight", this.standardPatterns(5)));
     }
-    if (isRoleEnabled("flush", difficulty)) {
+    if (enabled("flush")) {
       roles.push(...this.detectFlushes(hand, 5, "flush"));
     }
-    if (isRoleEnabled("fullHouse", difficulty)) {
+    if (enabled("fullHouse")) {
       roles.push(...this.detectFullHouses(hand));
     }
-    if (isRoleEnabled("fourOfAKind", difficulty)) {
+    if (enabled("fourOfAKind")) {
       roles.push(...this.detectFourOfAKinds(hand));
     }
-    if (isRoleEnabled("straightFlush", difficulty)) {
+    if (enabled("straightFlush")) {
       roles.push(...this.detectStraightFlushes(hand));
     }
-    if (isRoleEnabled("royalFlush", difficulty)) {
+    if (enabled("royalFlush")) {
       roles.push(...this.detectRoyalFlushes(hand));
     }
 

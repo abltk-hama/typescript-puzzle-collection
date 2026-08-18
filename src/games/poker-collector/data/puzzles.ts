@@ -49,7 +49,7 @@ export const BUILTIN_PUZZLES: PokerCollectorPuzzle[] = [
     title: "むずかしい問題 #1",
     difficulty: "hard",
     cardsLayout: generateInitialCards(5),
-    targetScore: 1500,
+    targetScore: 1200,
     allowedRetries: 1,
     description: "上級者向けの難しい問題です。",
   },

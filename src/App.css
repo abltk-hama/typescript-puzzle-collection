@@ -3132,3 +3132,61 @@ select {
     grid-template-columns: 1fr;
   }
 }
+
+/* Poker Collector - role reference */
+.poker-role-list-dialog {
+  display: grid;
+  gap: 18px;
+}
+.poker-role-list-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.poker-role-list-header h2,
+.poker-role-list-section h3 {
+  margin: 0;
+}
+.poker-role-list-header .dialog-hint {
+  margin-bottom: 0;
+}
+.poker-role-list-section {
+  display: grid;
+  gap: 10px;
+}
+.poker-role-list {
+  display: grid;
+  gap: 8px;
+}
+.poker-role-list-item {
+  display: grid;
+  gap: 5px;
+  padding: 10px 12px;
+  border: 1px solid #d4e0e6;
+  border-radius: 10px;
+  background: #fff;
+}
+.poker-role-list-item.discarded {
+  background: #fff7f7;
+  opacity: 0.72;
+}
+.poker-role-list-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.poker-role-list-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.86rem;
+}
+.role-status.confirmed {
+  color: #047857;
+  font-weight: 700;
+}
+.role-status.discarded {
+  color: #991b1b;
+  font-weight: 700;
+}

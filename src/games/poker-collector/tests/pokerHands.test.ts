@@ -67,7 +67,7 @@ describe("PokerHandDetector", () => {
     expect(roles.some((role) => role.type === "onePair")).toBe(true);
   });
 
-  it("Easyだけ4枚役と飛び地ストレートを有効にする", () => {
+  it("全難易度で4枚役とスキップストレートを有効にする", () => {
     const fourStraight = [
       createCard("♠", "2"),
       createCard("♥", "3"),
@@ -83,9 +83,9 @@ describe("PokerHandDetector", () => {
     ];
 
     expect(detector.detectAllRoles(fourStraight, "easy").some((role) => role.type === "fourCardStraight")).toBe(true);
-    expect(detector.detectAllRoles(fourStraight, "medium").some((role) => role.type === "fourCardStraight")).toBe(false);
+    expect(detector.detectAllRoles(fourStraight, "medium").some((role) => role.type === "fourCardStraight")).toBe(true);
     expect(detector.detectAllRoles(skipStraight, "easy").some((role) => role.type === "skipStraight")).toBe(true);
-    expect(detector.detectAllRoles(skipStraight, "hard").some((role) => role.type === "skipStraight")).toBe(false);
+    expect(detector.detectAllRoles(skipStraight, "hard").some((role) => role.type === "skipStraight")).toBe(true);
   });
 
   it("破棄したワンペアはランク単位、それ以外は役単位で除外する", () => {

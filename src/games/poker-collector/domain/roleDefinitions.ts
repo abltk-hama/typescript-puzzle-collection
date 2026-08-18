@@ -11,10 +11,11 @@ export interface RoleDefinition {
   rank: number;
   enabled: readonly PokerDifficulty[];
   discardScope: "rank" | "role";
+  category: "standard" | "collector";
+  description: string;
 }
 
 const ALL: readonly PokerDifficulty[] = ["easy", "medium", "hard"];
-const EASY_ONLY: readonly PokerDifficulty[] = ["easy"];
 
 export const ROLE_DEFINITIONS: Record<PokerRoleType, RoleDefinition> = {
   royalFlush: {
@@ -24,6 +25,8 @@ export const ROLE_DEFINITIONS: Record<PokerRoleType, RoleDefinition> = {
     rank: 1,
     enabled: ALL,
     discardScope: "role",
+    category: "standard",
+    description: "同じスーツの A・K・Q・J・10",
   },
   straightFlush: {
     type: "straightFlush",
@@ -32,6 +35,8 @@ export const ROLE_DEFINITIONS: Record<PokerRoleType, RoleDefinition> = {
     rank: 2,
     enabled: ALL,
     discardScope: "role",
+    category: "standard",
+    description: "同じスーツの5枚連番",
   },
   fourOfAKind: {
     type: "fourOfAKind",
@@ -40,6 +45,8 @@ export const ROLE_DEFINITIONS: Record<PokerRoleType, RoleDefinition> = {
     rank: 3,
     enabled: ALL,
     discardScope: "role",
+    category: "standard",
+    description: "同じランクを4枚そろえる",
   },
   fullHouse: {
     type: "fullHouse",
@@ -48,6 +55,8 @@ export const ROLE_DEFINITIONS: Record<PokerRoleType, RoleDefinition> = {
     rank: 4,
     enabled: ALL,
     discardScope: "role",
+    category: "standard",
+    description: "同じランク3枚と、別ランクのペア",
   },
   flush: {
     type: "flush",
@@ -56,6 +65,8 @@ export const ROLE_DEFINITIONS: Record<PokerRoleType, RoleDefinition> = {
     rank: 5,
     enabled: ALL,
     discardScope: "role",
+    category: "standard",
+    description: "同じスーツを5枚そろえる",
   },
   straight: {
     type: "straight",
@@ -64,14 +75,18 @@ export const ROLE_DEFINITIONS: Record<PokerRoleType, RoleDefinition> = {
     rank: 6,
     enabled: ALL,
     discardScope: "role",
+    category: "standard",
+    description: "ランクが連続する5枚",
   },
   skipStraight: {
     type: "skipStraight",
-    name: "飛び地ストレート",
+    name: "スキップストレート",
     score: 160,
     rank: 7,
-    enabled: EASY_ONLY,
+    enabled: ALL,
     discardScope: "role",
+    category: "collector",
+    description: "1ランクずつ飛ばした5枚の並び（例：A・3・5・7・9）",
   },
   threeOfAKind: {
     type: "threeOfAKind",
@@ -80,22 +95,28 @@ export const ROLE_DEFINITIONS: Record<PokerRoleType, RoleDefinition> = {
     rank: 8,
     enabled: ALL,
     discardScope: "role",
+    category: "standard",
+    description: "同じランクを3枚そろえる",
   },
   fourCardFlush: {
     type: "fourCardFlush",
     name: "4枚フラッシュ",
     score: 120,
     rank: 9,
-    enabled: EASY_ONLY,
+    enabled: ALL,
     discardScope: "role",
+    category: "collector",
+    description: "同じスーツを4枚そろえる",
   },
   fourCardStraight: {
     type: "fourCardStraight",
     name: "4枚ストレート",
     score: 100,
     rank: 10,
-    enabled: EASY_ONLY,
+    enabled: ALL,
     discardScope: "role",
+    category: "collector",
+    description: "ランクが連続する4枚",
   },
   twoPair: {
     type: "twoPair",
@@ -104,6 +125,8 @@ export const ROLE_DEFINITIONS: Record<PokerRoleType, RoleDefinition> = {
     rank: 11,
     enabled: ALL,
     discardScope: "role",
+    category: "standard",
+    description: "異なるランクのペアを2組そろえる",
   },
   onePair: {
     type: "onePair",
@@ -112,6 +135,8 @@ export const ROLE_DEFINITIONS: Record<PokerRoleType, RoleDefinition> = {
     rank: 12,
     enabled: ALL,
     discardScope: "rank",
+    category: "standard",
+    description: "同じランクを2枚そろえる（破棄はランク単位）",
   },
 };
 

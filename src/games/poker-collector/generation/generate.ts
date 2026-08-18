@@ -8,7 +8,7 @@ export function generatePokerPuzzles(
   const [targetScore, allowedRetries] = {
     easy: [300, 5],
     medium: [800, 3],
-    hard: [1500, 1],
+    hard: [1200, 1],
   }[difficulty];
 
   const deck = new Deck();
