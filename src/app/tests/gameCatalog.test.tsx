@@ -18,6 +18,7 @@ describe("game catalog", () => {
       "kakuro",
       "formula_signs",
       "slitherlink",
+      "poker_collector",
     ]);
     expect(new Set(gameCatalog.map((game) => game.id)).size).toBe(
       gameCatalog.length,
