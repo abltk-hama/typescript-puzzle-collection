@@ -40,6 +40,10 @@ import { loadBundledPuzzles as loadSlitherlink } from "../games/slitherlink/data
 import type { SlitherlinkPuzzle } from "../games/slitherlink/domain/slitherlink";
 import { SlitherlinkGame } from "../games/slitherlink/ui/SlitherlinkGame";
 import { SlitherlinkSetup } from "../games/slitherlink/ui/SlitherlinkSetup";
+import { loadBundledPuzzles as loadPoker } from "../games/poker-collector/data/puzzles";
+import type { PokerCollectorPuzzle } from "../games/poker-collector/domain/pokerHandTypes";
+import { PokerGame } from "../games/poker-collector/ui/PokerGame";
+import { PokerSetup } from "../games/poker-collector/ui/PokerSetup";
 
 export type GameId =
   | "lights_out"
@@ -51,7 +55,8 @@ export type GameId =
   | "skyscraper"
   | "kakuro"
   | "formula_signs"
-  | "slitherlink";
+  | "slitherlink"
+  | "poker_collector";
 export interface GameRegistration {
   id: GameId;
   displayName: string;
@@ -185,6 +190,16 @@ export const gameCatalog: readonly GameRegistration[] = [
     loadPuzzles: loadSlitherlink,
     Setup: SlitherlinkSetup,
     Game: SlitherlinkGame,
+  }),
+  register<PokerCollectorPuzzle>({
+    id: "poker_collector",
+    displayName: "ポーカーコレクター",
+    description: "役を作って得点を稼ごう",
+    icon: "🎴",
+    cardClass: "poker-collector-card",
+    loadPuzzles: loadPoker,
+    Setup: PokerSetup,
+    Game: PokerGame,
   }),
 ];
 export function findGame(id: GameId | null) {

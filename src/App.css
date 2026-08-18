@@ -2777,3 +2777,358 @@ select {
     grid-template-columns: 1fr;
   }
 }
+
+/* Poker Collector */
+.poker-game-area {
+  display: grid;
+  gap: 28px;
+  margin: 20px 0 28px;
+}
+.board-area,
+.hand-area,
+.roles-area {
+  text-align: center;
+}
+.board-area h3,
+.hand-area h3,
+.roles-area h3 {
+  margin: 0 0 14px;
+  font-size: 1.25rem;
+}
+.poker-board-wrap {
+  padding: 18px;
+  overflow-x: auto;
+  border: 1px solid #d7e5ec;
+  border-radius: 16px;
+  background: #f7fbfd;
+}
+.poker-board {
+  display: grid;
+  grid-template-columns: repeat(13, minmax(54px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+.poker-card,
+.hand-card {
+  position: relative;
+  width: 100%;
+  min-width: 54px;
+  aspect-ratio: 5 / 7;
+  border: 1px solid #9eabb3;
+  border-radius: 8px;
+  background: #fff;
+  color: #17212b;
+  font: inherit;
+  box-shadow: 0 2px 5px #1c2b3514;
+}
+.poker-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 7px 8px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.poker-card.visible:hover,
+.poker-card.visible:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px #1c2b3526;
+}
+.poker-card.red,
+.hand-card.red {
+  color: #c62828;
+}
+.poker-card.hidden {
+  align-items: center;
+  justify-content: center;
+  border-color: #465666;
+  background: repeating-linear-gradient(45deg, #243746, #243746 8px, #30495d 8px, #30495d 16px);
+  color: #dce8ef;
+  cursor: default;
+}
+.poker-card.hidden:disabled {
+  opacity: 1;
+}
+.card-rank {
+  font-size: clamp(1rem, 1.7vw, 1.45rem);
+  font-weight: 800;
+  line-height: 1;
+}
+.card-suit {
+  margin-top: 3px;
+  font-size: clamp(1.15rem, 2vw, 1.7rem);
+  line-height: 1;
+}
+.card-back-mark {
+  font-size: 1.5rem;
+  opacity: 0.75;
+}
+.poker-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.hand-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.hand-card {
+  width: 76px;
+  min-width: 76px;
+  padding: 9px;
+  text-align: left;
+}
+.hand-card.fixed {
+  opacity: 0.55;
+  box-shadow: inset 0 0 0 3px #0f766e;
+}
+.roles-list {
+  display: grid;
+  gap: 8px;
+}
+.role-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #eef6f8;
+}
+.bonus-indicator {
+  margin-top: 10px;
+  font-weight: 700;
+  color: #057a55;
+}
+.score-display {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+@media (max-width: 900px) {
+  .poker-board {
+    grid-template-columns: repeat(8, minmax(54px, 1fr));
+    min-width: 520px;
+  }
+  .poker-status {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Poker Collector - role engine extensions */
+.poker-grace-banner {
+  margin: 14px 0 4px;
+  padding: 10px 14px;
+  border: 1px solid #b9dbe7;
+  border-radius: 10px;
+  background: #eef8fb;
+  text-align: center;
+}
+.confirmed-role-groups {
+  display: grid;
+  gap: 12px;
+}
+.confirmed-role-group {
+  padding: 10px;
+  border: 1px solid #d8e4e9;
+  border-radius: 12px;
+  background: #fbfdfe;
+}
+.confirmed-role-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.hand-card.compact {
+  width: 54px;
+  min-width: 54px;
+  padding: 6px;
+}
+.discarded-roles-area {
+  padding: 16px;
+  border: 1px solid #ecd3d3;
+  border-radius: 14px;
+  background: #fffafa;
+  text-align: center;
+}
+.discarded-roles-area h3 {
+  margin: 0 0 10px;
+}
+.discarded-role-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.discarded-role-chip {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f6dddd;
+  color: #7f1d1d;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.poker-role-dialog {
+  width: min(720px, calc(100vw - 32px));
+  max-height: min(86vh, 760px);
+  overflow: auto;
+}
+.role-candidate-list {
+  display: grid;
+  gap: 8px;
+  max-height: 290px;
+  margin: 14px 0;
+  overflow: auto;
+}
+.role-candidate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccdbe2;
+  border-radius: 10px;
+  background: #fff;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.role-candidate > span {
+  display: grid;
+  gap: 3px;
+}
+.role-candidate small {
+  color: #64748b;
+}
+.role-candidate.selected {
+  border-color: #0f766e;
+  box-shadow: inset 0 0 0 1px #0f766e;
+  background: #effcf8;
+}
+.poker-role-actions {
+  flex-wrap: wrap;
+}
+.button.danger {
+  border-color: #b91c1c;
+  background: #b91c1c;
+  color: #fff;
+}
+.button.danger:hover:not(:disabled),
+.button.danger:focus-visible:not(:disabled) {
+  background: #991b1b;
+}
+
+/* Poker Collector - planning workspace / hints */
+.poker-assist-area {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+.poker-assist-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.poker-hint-summary,
+.planning-mode-note {
+  padding: 10px 14px;
+  border: 1px solid #c9d9e3;
+  border-radius: 10px;
+  background: #f5f9fb;
+  text-align: center;
+}
+.poker-hint-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+.planning-workspace {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid #b8d7ce;
+  border-radius: 14px;
+  background: #f5fbf8;
+}
+.planning-groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.planning-group {
+  display: grid;
+  gap: 6px;
+  min-height: 112px;
+  padding: 12px;
+  border: 1px solid #c8d8d2;
+  border-radius: 12px;
+  background: #fff;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.planning-group.active {
+  border-color: #0f766e;
+  box-shadow: inset 0 0 0 1px #0f766e;
+  background: #effcf8;
+}
+.planning-group-cards,
+.planning-group-roles {
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+.planning-group-roles {
+  color: #52646e;
+}
+.planning-role-search h4 {
+  margin: 0 0 8px;
+}
+.planning-role-candidates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 280px;
+  overflow: auto;
+}
+.planning-role-candidate {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid #cedce2;
+  border-radius: 10px;
+  background: #fff;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.planning-role-candidate > span:first-child {
+  display: grid;
+  gap: 2px;
+}
+.planning-role-candidate small {
+  color: #64748b;
+}
+.poker-card.planning-selected {
+  box-shadow: inset 0 0 0 3px #0f766e, 0 4px 9px #0f766e33;
+}
+.poker-card.hint-card {
+  outline: 4px solid #d97706;
+  outline-offset: 2px;
+}
+@media (max-width: 760px) {
+  .planning-groups,
+  .planning-role-candidates {
+    grid-template-columns: 1fr;
+  }
+}
