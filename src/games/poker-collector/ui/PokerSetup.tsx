@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { LauncherFooter } from "../../../common/components/GameChrome";
 import type { PokerCollectorPuzzle } from "../domain/pokerHandTypes";
 import { generatePokerPuzzles } from "../generation/generate";
 import {
-  listPokerProgress,
   loadGeneratedPokerPuzzles,
 } from "../data/sessions";
 
@@ -14,36 +13,20 @@ const labels = {
 };
 
 export function PokerSetup({
-  puzzles,
   onStart,
   onLauncher,
 }: {
-  puzzles: PokerCollectorPuzzle[];
   onStart: (p: PokerCollectorPuzzle) => void;
   onLauncher: () => void;
 }) {
-  const [difficulty, setDifficulty] = useState<keyof typeof labels>("easy");
-  const [selected, setSelected] = useState("");
-  const [progress, setProgress] = useState<Set<string>>(new Set());
   const [generated, setGenerated] = useState<PokerCollectorPuzzle[]>([]);
   const [randomDifficulty, setRandomDifficulty] = useState<keyof typeof labels>("easy");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([listPokerProgress(), loadGeneratedPokerPuzzles()]).then(
-      ([sessions, items]) => {
-        setProgress(new Set(Array.from(sessions.keys())));
-        setGenerated(items);
-      }
-    );
+    loadGeneratedPokerPuzzles().then(setGenerated);
   }, []);
-
-  const choices = useMemo(
-    () => puzzles.filter((p) => p.difficulty === difficulty),
-    [puzzles, difficulty]
-  );
-  const current = choices.find((p) => p.id === (selected || choices[0]?.id));
 
   function generateAndStart() {
     setBusy(true);
@@ -72,51 +55,8 @@ export function PokerSetup({
           <span>見えているカードから役を作り、目標得点に達しよう</span>
         </div>
 
-        <div className="setup-grid">
-          {/* 同梱問題 */}
-          <article className="setup-card">
-            <h2>同梱問題</h2>
-            <label>
-              難易度
-              <select
-                value={difficulty}
-                onChange={(event) => {
-                  setDifficulty(event.target.value as keyof typeof labels);
-                  setSelected("");
-                }}
-              >
-                {Object.entries(labels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              問題
-              <select
-                value={current?.id ?? ""}
-                onChange={(event) => setSelected(event.target.value)}
-              >
-                {choices.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title}
-                    {progress.has(p.id) ? "（途中）" : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              className="button"
-              disabled={!current}
-              onClick={() => current && onStart(current)}
-            >
-              ゲームを開始
-            </button>
-          </article>
-
-          {/* ランダム問題 */}
-          <article className="setup-card">
+        <div className="setup-grid poker-setup-grid">
+          <article className="setup-card poker-setup-card">
             <h2>ランダム問題</h2>
             <p>25枚のカード配置をランダム生成します。</p>
             <label>

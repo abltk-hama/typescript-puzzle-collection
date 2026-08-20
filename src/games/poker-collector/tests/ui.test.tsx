@@ -1,25 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { createCard } from "../../../common/cards";
-import type { PokerCollectorPuzzle } from "../domain/pokerHandTypes";
 import { PokerSetup } from "../ui/PokerSetup";
 
 describe("PokerSetup", () => {
-  const mockPuzzles: PokerCollectorPuzzle[] = [
-    {
-      id: "test_1",
-      title: "Test Puzzle 1",
-      difficulty: "easy",
-      cardsLayout: Array(25).fill(createCard("♠", "A")),
-      targetScore: 300,
-      allowedRetries: 5,
-    },
-  ];
-
   it("should render setup screen", () => {
     render(
       <PokerSetup
-        puzzles={mockPuzzles}
         onStart={() => {}}
         onLauncher={() => {}}
       />
@@ -30,14 +16,14 @@ describe("PokerSetup", () => {
     ).toBeInTheDocument();
   });
 
-  it("should show puzzle title", () => {
+  it("should show only the random puzzle setup", () => {
     render(
       <PokerSetup
-        puzzles={mockPuzzles}
         onStart={() => {}}
         onLauncher={() => {}}
       />
     );
-    expect(screen.getByText("Test Puzzle 1")).toBeInTheDocument();
+    expect(screen.getByText("ランダム問題")).toBeInTheDocument();
+    expect(screen.queryByText("同梱問題")).not.toBeInTheDocument();
   });
 });
